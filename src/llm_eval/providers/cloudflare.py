@@ -234,6 +234,10 @@ def infer(
         if experiment.model == ACTIVE_INFERENCE_MODEL else "max_tokens"
     )
     body[limit_key] = experiment.max_output_tokens
+    if experiment.model == ACTIVE_INFERENCE_MODEL:
+        # Official Gemma 4 guide uses this for ordinary short text replies.
+        # Keep reasoning tokens from consuming the strict 64-token budget.
+        body["chat_template_kwargs"] = {"enable_thinking": False}
     send = transport or _post_json
     timer = clock or time.perf_counter
     started = timer()
