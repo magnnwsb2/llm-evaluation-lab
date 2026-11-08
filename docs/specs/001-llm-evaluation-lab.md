@@ -166,6 +166,20 @@ After verification of the public dashboard and Stage 015.1 rendering corrections
 
 **Stage 016 acceptance:** green credential-free CI with old and new manifest validation; deterministic tests for strict JSON extraction and same/different/unavailable repeat diagnostics; selector injection rejected offline; report-integrity regrading and cost ceilings preserved. Real inference and a public advanced-performance claim are separate evidence steps.
 
+### 5.7 Structured-output failure diagnosis and audited evidence — Stage 017
+
+Observed real advanced run `42511351245` (2026-11-08, revision `6f90b6a2e9cea68e9d6f4087cb2662ba562e734b`) yielded 2 pass, 1 fail, 0 provider errors. The `json-ticket-001` response contained the correct three fields and values but prefixed an explanatory sentence and enclosed the JSON in Markdown fences. The two repeated decisions both returned `ESCALATE` and agreed. The original strict `json_object` score **must remain fail**.
+
+**Diagnostic-only, additive semantics:**
+- Provide a separate offline `diagnose_json_object(case, result)` analysis, without modifying `CaseResult`, `results.json`, assertion semantics, original scores or historical evidence. For `json_object` cases, classify `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable` or `unavailable` (provider error/no response).
+- Extract at most **one** bounded JSON object from an otherwise nonconforming response, using JSON's own strict decoder and explicit boundary checks. Allow a single plain or fenced object with optional explanatory text, but reject multiple objects, nested/array/float/nonfinite values, duplicate keys, unsupported scalar types, ambiguous trailing fragments or unbalanced boundaries. This lenient parsing is **only for diagnosis**: it cannot promote a failed assertion to pass.
+- If a unique, type-valid object has precisely the expected keys and type-strict values but surrounding text or fences, classify `content_match_format_violation`; if unique parsed object differs in fields or values, classify `content_mismatch`; if no unique safe object can be extracted, classify `unparseable`. The diagnostic does **not** prove semantic correctness of an arbitrary natural-language response.
+- Add a clearly labeled diagnostic table to the human-readable `report.md` **without copying prompts or responses**; existing canonical report-integrity checks must regenerate and verify it. Report statuses, summary and pass rate stay untouched. No new provider calls, retry, judge LLM or changes to the manual workflow's caps or inputs.
+- Register a **manually reviewed statistics-only** evidence file for the real advanced run, including run ID, revision, UTC timestamp, model, summary, case IDs/statuses/latencies, repeated-prompt observation and JSON failure category. This file is historical evidence, **not** an automatically refreshed feed. Validate an exact provenance and allowlisted structure in offline tests, reject any prompt, response, secret, extra key, or forged count. The existing public dashboard must remain unchanged; a separate dashboard expansion requires explicit SDD and review.
+- All changes run in offline push/PR CI. No new inference, external dependency, network access, paid service, tokens, or user action.
+
+**Acceptance:** deterministic tests cover real observed wrapped JSON and adversarial ambiguities, strict grade still fails, report integrity still validates canonical output and rejects diagnostic tampering, approved advanced evidence matches the inspected run and never includes raw responses, and CI/security checks are green. The real run proves only the three observed cases, not general model reliability.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
