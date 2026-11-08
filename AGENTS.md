@@ -31,4 +31,5 @@
 - `.github/workflows/cloudflare-smoke-test.yml` performs a manual real inference, and the user confirmed one successful run.
 - The offline JSON contracts, objective grading functions and offline CI/security workflow are implemented in `src/llm_eval/`, `tests/` and `.github/workflows/offline-ci.yml`.
 - A guarded Cloudflare provider adapter exists at `src/llm_eval/providers/cloudflare.py`; it is import-safe and is covered by offline fakes, but it does not automatically run inference.
-- The real-inference evaluation workflow, persisted report artifacts and Pages dashboard have **not** been implemented yet.
+- A manual-only graded evaluation workflow and JSON/Markdown artifact generator exist, but **a successful real graded run has not yet been verified**.
+- The Pages dashboard has **not** been implemented.

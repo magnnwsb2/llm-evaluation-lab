@@ -104,6 +104,16 @@ The initial adapter lives in `src/llm_eval/providers/cloudflare.py`, with no aut
 
 **Model lifecycle:** Cloudflare's model documentation currently lists **2026-11-20** as the planned deprecation date of `@cf/meta/llama-3.1-8b-instruct-fp8`. Keep the current known-working model solely for this compatible adapter step; evaluate a free-eligible replacement and update the allowlist/spec **before** the deprecation, under a separately reviewed change. Never silently swap models.
 
+### 5.2 Manual evaluation runner — Stage 012
+
+- Entry point: `python -m llm_eval.run_evaluation`, invoked **only** from `.github/workflows/manual-evaluation.yml` with `workflow_dispatch` (no push, pull request, cron, retry, or matrix).
+- The dispatch manifest is a fixed allowlisted repository path `experiments/smoke-001.json`. The workflow uses `contents: read`, `persist-credentials: false`, `timeout-minutes: 5`, `concurrency` with `cancel-in-progress: false`, and GitHub Actions secret/variable injected as environment variables.
+- Runner validates all inputs before the first network request. For at most 3 cases, call the existing guarded adapter once per case and grade the actual response with `grade()`. On `auth`, `quota`, `rate_limit`, `network`, `timeout`, `provider` or `invalid_response`, mark the case `error` and **stop making further requests**; any remaining cases receive `error` with the same sanitized category, without an attempted call. No fallback or retries.
+- Save `results.json` and `report.md` to a dedicated directory. Include schema version, experiment/model IDs, GitHub run ID, UTC timestamp, revision SHA, safe configuration, per-case status, measured latency, and the summary. Only public synthetic prompts and model responses may appear in these private-to-run artifacts; **do not publish them to GitHub Pages**. Responses are not echoed in CI logs.
+- Reports are emitted even if provider inference fails; the CLI returns a nonzero exit code for provider errors, and the artifact upload uses `if: always()` with `if-no-files-found: error` and limited retention. A prompt compliance `fail` is an evaluation result, not a CI infrastructure error.
+- Offline tests exercise success, prompt noncompliance, sanitized provider failure, request stopping and report serialization with fake transports; no real inference on CI.
+- Stage 012's implementation and green offline CI do not by themselves establish AC-04, AC-05 or AC-08: one **explicitly dispatched** real workflow and inspected artifact are required.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
