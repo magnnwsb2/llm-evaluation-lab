@@ -29,4 +29,5 @@
 
 ## Current observed baseline
 - `.github/workflows/cloudflare-smoke-test.yml` performs a manual real inference, and the user confirmed one successful run.
-- No grading engine, artifact-based evaluation workflow or Pages dashboard has been implemented yet.
+- The offline JSON contracts, objective grading functions and offline CI/security workflow are implemented in `src/llm_eval/`, `tests/` and `.github/workflows/offline-ci.yml`.
+- The real-inference evaluation workflow, persisted report artifacts and Pages dashboard have **not** been implemented yet.
