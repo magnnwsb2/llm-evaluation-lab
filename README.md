@@ -15,6 +15,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
   - **regex**: Python `re.search` (patterns validated and length-limited).
 - Distinguishes `pass`, `fail` and `error` and includes errors in pass-rate denominator.
 - Provides a guarded Cloudflare Workers AI adapter (`src/llm_eval/providers/cloudflare.py`) with one request, 45-second timeout, 64 KiB response cap, no redirects or retries, sanitized failure categories, and measured client-observed latency. **No automatic inference is enabled.**
+- Validates evaluation artifact integrity offline before upload: recomputes grades and summary, checks run/commit identity, and rejects tampered or inconsistent JSON/Markdown. This is not proof of a real provider call.
 - Runs offline unit tests and an independent, project-local security gate in GitHub Actions. The development policy follows the separately maintained `ai-engineering-skills` repository (see ADR-0001); the private scanner is not fetched by public CI.
 
 ## Project structure
@@ -34,12 +35,14 @@ src/llm_eval/
   providers/
     cloudflare.py             # guarded real-inference adapter; explicit call only
   run_evaluation.py          # manual runner, grading, JSON/Markdown reports
+  report_validation.py       # offline artifact integrity gate
 experiments/smoke-001.json
 cases/smoke.json
 tests/test_contracts.py
 tests/test_scoring.py
 tests/test_cloudflare_provider.py
 tests/test_run_evaluation.py
+tests/test_report_validation.py
 ```
 
 ## Running entirely through GitHub
@@ -73,6 +76,12 @@ manually dispatch experiment
 To run a graded experiment: open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), select **Run workflow** on `main`, and inspect the `graded-evaluation-<run_id>` artifact. The workflow is never triggered by a push or pull request; it makes up to three sequential real inference calls and uploads `results.json` plus `report.md` (7-day retention).
 
 **Model lifecycle:** Cloudflare lists **2026-11-20** as the planned deprecation of `@cf/meta/llama-3.1-8b-instruct-fp8`. Re-evaluate the free-model allowlist before that date; do not silently replace the model in a versioned experiment.
+
+## Report integrity and evidence
+
+The manual workflow runs an additional **offline report-validation step** after generation (including provider-error runs) and before upload. It rejects mismatched run IDs, revisions, altered scores, malformed case records and inconsistent Markdown. The test suite uses synthetic responses only. An actual dispatched run, log inspection and result artifact are still required before claiming a real graded experiment.
+
+The dashboard layout remains deferred under SDD-001 §12 until that real evidence exists.
 
 ## Cost and security
 
