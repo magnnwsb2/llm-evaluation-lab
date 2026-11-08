@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** SDD contracts, offline scoring and a guarded Cloudflare Workers AI adapter are implemented. The original manual smoke test succeeded; the full manually dispatched evaluation runner, persisted reports and GitHub Pages dashboard are **not yet implemented**.
+**Current stage:** SDD contracts, offline scoring and a guarded Cloudflare Workers AI adapter are implemented. The original manual smoke test succeeded; a manual-only graded evaluation runner and GitHub Actions artifacts are implemented, but **no real graded run has been verified yet**. GitHub Pages remains future work.
 
 ## What works now
 
@@ -23,6 +23,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
 .github/workflows/
   cloudflare-smoke-test.yml  # manual, small real inference; no scoring yet
   offline-ci.yml             # push/PR tests + security scan; no inference
+  manual-evaluation.yml      # manual real inference + scored artifacts
 AGENTS.md                    # project development policy
 docs/specs/001-llm-evaluation-lab.md
 src/llm_eval/
@@ -32,11 +33,13 @@ src/llm_eval/
   scoring.py                 # objective answer evaluation
   providers/
     cloudflare.py             # guarded real-inference adapter; explicit call only
+  run_evaluation.py          # manual runner, grading, JSON/Markdown reports
 experiments/smoke-001.json
 cases/smoke.json
 tests/test_contracts.py
 tests/test_scoring.py
 tests/test_cloudflare_provider.py
+tests/test_run_evaluation.py
 ```
 
 ## Running entirely through GitHub
@@ -54,7 +57,7 @@ PYTHONPATH=src python3 -m llm_eval validate experiments/smoke-001.json
 
 No local workstation is required for normal project operation.
 
-## Future real-inference flow
+## Manual real-inference flow
 
 ```text
 manually dispatch experiment
@@ -65,7 +68,9 @@ manually dispatch experiment
   -> (later) publish sanitized, public-only dashboard on GitHub Pages
 ```
 
-**Caution:** The existing manual smoke test verifies a successful nonempty response only. The new adapter has been tested with offline fakes, **not yet by a real graded experiment**. Neither produces a persisted evaluation artifact today.
+**Caution:** The original smoke test verifies a nonempty response only. The new workflow is implemented but has **not yet been manually dispatched and validated against Cloudflare**. Only an actual manual run and artifact inspection can establish real scoring evidence.
+
+To run a graded experiment: open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), select **Run workflow** on `main`, and inspect the `graded-evaluation-<run_id>` artifact. The workflow is never triggered by a push or pull request; it makes up to three sequential real inference calls and uploads `results.json` plus `report.md` (7-day retention).
 
 **Model lifecycle:** Cloudflare lists **2026-11-20** as the planned deprecation of `@cf/meta/llama-3.1-8b-instruct-fp8`. Re-evaluate the free-model allowlist before that date; do not silently replace the model in a versioned experiment.
 
