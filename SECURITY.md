@@ -11,7 +11,7 @@ The public GitHub Pages dashboard intentionally contains only manually reviewed,
 - Cloudflare account ID is read from GitHub Actions variable `CLOUDFLARE_ACCOUNT_ID`; the API token is read from secret `CLOUDFLARE_API_TOKEN`. Do not place real values in files, PRs, logs, comments or screenshots.
 - Requests are allowed **only** through manually dispatched workflows; no cron, push/PR inference, parallel batches or retries. Both manual workflows use a shared concurrency group.
 - The real provider transport refuses archived models; only the explicitly reviewed current model is eligible. Each evaluation is limited to 3 sequential calls × 1 repetition × 64 completion tokens; the one-call smoke is narrower.
-- Workers AI usage must remain within the free allowance. **Do not upgrade the Cloudflare account, use paid-only models, credits or payment methods.** Provider limits and eligibility may change. A successful test is not proof of future zero cloud charges.
+- Workers AI usage must remain within the **Workers Free** allowance. **Do not upgrade the Cloudflare account, use paid-only models, credits or payment methods.** Provider limits and eligibility may change. A successful test is not proof of future zero cloud charges.
 
 ## Contribution and disclosure
 
