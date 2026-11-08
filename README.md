@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis. Stage 023 builds an offline cross-model comparison foundation; no additional model has been approved or executed.
 
 ## What works now
 
@@ -119,6 +119,16 @@ The real [advanced run #42511351245](https://github.com/magnnwsb2/llm-evaluation
 Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_object`: `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable`, and `unavailable`. A response with correct content but invalid surrounding text **remains a strict failure**. This diagnostic is included in the canonical `report.md` for **future** manually dispatched evaluations, with no prompts or responses copied into the Markdown. The `results.json` schema, historical artifacts, pass rates, three-call cap, model, credentials and manual-only execution remain unchanged.
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
+
+## Stage 023 — Offline matched-suite multi-model comparison foundation
+
+**No new model is active.** This stage prepares a standard-library Python comparator for two **different** models answering precisely the **same** ordered case suite with identical generation/assessment configuration. It verifies each source's existing signed-identity fields, independent strict grades, summary and canonical Markdown report using `validate_reports()` before allowing comparison. A SHA-256 fingerprint covers IDs, **complete prompt text and expected assertions**; changed prompts, model identity, rules, order, provider, temperature, call budgets or run identity are rejected.
+
+Only a redacted `matched-suite-observation` JSON may be produced: model/run/revision references, grade totals, observed HTTP latency means/counts, and per-case outcomes. **No raw responses, prompts, API secrets, tokens, invented costs, unsupported causal claims or rankings.** All three historical Pages runs use the same model on **different** suites, and therefore cannot be treated as an A/B model comparison. The public dashboard remains unchanged.
+
+`src/llm_eval/model_comparison.py` provides an **offline-only** CLI to read two local report folders and two repository-approved manifests. It deliberately cannot compare actual different models until Stage 026 authorizes an eligible second model. In unit tests only, a fictional second model demonstrates how the future comparison behaves; this does **not** add it to the provider allowlist or enable inference. Local `evaluation-artifacts/` and `comparison-output/` directories are gitignored.
+
+See [Stage 023 comparison protocol](docs/experiments/model-comparison-023.md) and [SDD-001 §5.13](docs/specs/001-llm-evaluation-lab.md). The agreed next steps are **024 statistics → 025 new objective evaluation strategies → 026 model update → 027 final consolidation**. All are subject to SDD change control, manual-only inference and zero financial cost.
 
 ## Stage 022 — Three independently reviewed real-run summaries on GitHub Pages
 
