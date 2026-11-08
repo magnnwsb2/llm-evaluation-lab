@@ -63,6 +63,7 @@ class RobustnessEvaluationTests(unittest.TestCase):
     def test_existing_manifests_unchanged_and_selection_restrictive(self):
         self.assertEqual(set(APPROVED_EXPERIMENTS), {
             "smoke-001", "advanced-001", "robustness-001",
+            "smoke-002", "advanced-002", "robustness-002",
         })
         self.assertEqual(select_manifest("robustness-001"), MANIFEST)
         for existing in ("smoke-001", "advanced-001"):
@@ -241,9 +242,12 @@ class RobustnessEvaluationTests(unittest.TestCase):
             encoding="utf-8"
         )
         self.assertIn("  workflow_dispatch:", workflow)
-        self.assertIn("          - robustness-001", workflow)
-        self.assertIn("          - smoke-001", workflow)
-        self.assertIn("          - advanced-001", workflow)
+        self.assertIn("          - robustness-002", workflow)
+        self.assertNotIn("          - robustness-001", workflow)
+        self.assertIn("          - smoke-002", workflow)
+        self.assertNotIn("          - smoke-001", workflow)
+        self.assertIn("          - advanced-002", workflow)
+        self.assertNotIn("          - advanced-001", workflow)
         self.assertNotIn("\n  push:", workflow)
         self.assertNotIn("\n  pull_request:", workflow)
         self.assertIn("EVALUATION_EXPERIMENT: ${{ inputs.experiment }}", workflow)
