@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** SDD contracts, offline Python validation and objective scoring are implemented. The Cloudflare Workers AI smoke test has run successfully; the full real-inference evaluation runner, persisted reports and GitHub Pages dashboard are **not yet implemented**.
+**Current stage:** SDD contracts, offline scoring and a guarded Cloudflare Workers AI adapter are implemented. The original manual smoke test succeeded; the full manually dispatched evaluation runner, persisted reports and GitHub Pages dashboard are **not yet implemented**.
 
 ## What works now
 
@@ -14,6 +14,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
   - **contains**: substring matching without case folding.
   - **regex**: Python `re.search` (patterns validated and length-limited).
 - Distinguishes `pass`, `fail` and `error` and includes errors in pass-rate denominator.
+- Provides a guarded Cloudflare Workers AI adapter (`src/llm_eval/providers/cloudflare.py`) with one request, 45-second timeout, 64 KiB response cap, no redirects or retries, sanitized failure categories, and measured client-observed latency. **No automatic inference is enabled.**
 - Runs offline unit tests and an independent, project-local security gate in GitHub Actions. The development policy follows the separately maintained `ai-engineering-skills` repository (see ADR-0001); the private scanner is not fetched by public CI.
 
 ## Project structure
@@ -29,10 +30,13 @@ src/llm_eval/
   __main__.py
   contracts.py               # strict JSON validation
   scoring.py                 # objective answer evaluation
+  providers/
+    cloudflare.py             # guarded real-inference adapter; explicit call only
 experiments/smoke-001.json
 cases/smoke.json
 tests/test_contracts.py
 tests/test_scoring.py
+tests/test_cloudflare_provider.py
 ```
 
 ## Running entirely through GitHub
@@ -55,13 +59,15 @@ No local workstation is required for normal project operation.
 ```text
 manually dispatch experiment
   -> validate capped manifest and cases
-  -> call approved free-eligible Cloudflare Workers AI model
+  -> call approved free-eligible Cloudflare Workers AI model using the tested adapter
   -> grade responses
   -> upload results.json and report.md as GitHub Actions artifacts
   -> (later) publish sanitized, public-only dashboard on GitHub Pages
 ```
 
-**Caution:** The existing manual smoke test verifies a successful nonempty response only; it does **not** measure prompt compliance or publish an evaluation artifact.
+**Caution:** The existing manual smoke test verifies a successful nonempty response only. The new adapter has been tested with offline fakes, **not yet by a real graded experiment**. Neither produces a persisted evaluation artifact today.
+
+**Model lifecycle:** Cloudflare lists **2026-11-20** as the planned deprecation of `@cf/meta/llama-3.1-8b-instruct-fp8`. Re-evaluate the free-model allowlist before that date; do not silently replace the model in a versioned experiment.
 
 ## Cost and security
 
