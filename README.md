@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced evaluations are implemented and await a separately triggered real run.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 017 adds diagnostic-only analysis and an audited statistics snapshot.
 
 ## What works now
 
@@ -103,6 +103,14 @@ The second reviewed experiment is `advanced-001` (see `experiments/advanced-001.
 - **Execution controls are unchanged:** a maximum of three sequential requests, 64 output tokens per request, one repetition, no automatic retries and no inference on push/PR. The existing GitHub Pages dashboard continues to show only the separately reviewed real smoke run; new responses are **not** published automatically.
 - The PR/push offline tests validate both experiment manifests and all JSON/repeat/report cases with local fixtures. Passing these tests does not establish actual advanced-model performance: that requires a future manual run and artifact review.
 - The current model may be retired on **2026-11-20**. Confirm free-plan eligibility and review any model replacement separately before executing after that date.
+
+## Stage 017 — JSON content versus strict format
+
+The real [advanced run #42511351245](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42511351245) was reviewed: **2 passed, 1 failed, 0 provider errors**. The failed JSON extraction had the expected field values but included explanatory prose and Markdown fences, violating the strict JSON-only contract. The repeated rule-based decisions both returned `ESCALATE` (observed agreement only).
+
+Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_object`: `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable`, and `unavailable`. A response with correct content but invalid surrounding text **remains a strict failure**. This diagnostic is included in the canonical `report.md` for **future** manually dispatched evaluations, with no prompts or responses copied into the Markdown. The `results.json` schema, historical artifacts, pass rates, three-call cap, model, credentials and manual-only execution remain unchanged.
+
+The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated and **not yet displayed on the public Pages dashboard**; a future dashboard expansion requires its own review. The previously published smoke snapshot remains unchanged.
 
 ## Public dashboard — Stage 015
 
