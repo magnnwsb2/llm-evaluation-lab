@@ -13,6 +13,7 @@ from pathlib import Path
 from tools.build_dashboard import SNAPSHOT, build, parse_snapshot, render
 from tools.comparison import COMPARISON_CSS
 from tools.validate_advanced_evidence import SOURCE, read_evidence
+from tools.validate_robustness_evidence import SOURCE as ROBUSTNESS_SOURCE, read_robustness_evidence
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -23,7 +24,8 @@ class Stage019AccessibilityTests(unittest.TestCase):
     def setUpClass(cls):
         cls.smoke = parse_snapshot((ROOT / SNAPSHOT).read_bytes())
         cls.advanced = read_evidence(ROOT / SOURCE)
-        cls.page = render(cls.smoke, cls.advanced)
+        cls.robustness = read_robustness_evidence(ROOT / ROBUSTNESS_SOURCE)
+        cls.page = render(cls.smoke, cls.advanced, cls.robustness)
         cls.styles = cls.page.split("<style>", 1)[1].split("</style>", 1)[0]
 
     def test_chart_grid_no_longer_stretches_to_sibling_height(self):
@@ -65,6 +67,7 @@ class Stage019AccessibilityTests(unittest.TestCase):
         self.assertIn("href=\"https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42511351245\"", self.page)
         self.assertIn("61fd68ae0d51", self.page)
         self.assertIn("6f90b6a2e9ce", self.page)
+        self.assertIn("f7f98c3082f9", self.page)
 
     def test_heading_hierarchy_and_methodology_cover_both_tasks(self):
         self.assertIn(".compare-section>h2{font-size:clamp(1.6rem", self.styles)
@@ -72,6 +75,7 @@ class Stage019AccessibilityTests(unittest.TestCase):
         self.assertIn('<section class="panel" id="metodologia">', self.page)
         self.assertIn("<strong>smoke-001:</strong>", self.page)
         self.assertIn("<strong>advanced-001:</strong>", self.page)
+        self.assertIn("<strong>robustness-001:</strong>", self.page)
         self.assertIn("extração estruturada", self.page)
         self.assertIn("formato violou o contrato estrito de JSON", self.page)
         self.assertIn("não é um teste A/B controlado", self.page)
