@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "robustness-001",
+  "run_id": "42519170795",
+  "revision_sha": "f7f98c3082f92508ef06a1cbc02b7a60c6acfe90",
+  "timestamp_utc": "2026-11-08T20:15:27+00:00",
+  "model": "@cf/meta/llama-3.1-8b-instruct-fp8",
+  "visibility": "reviewed-public-statistics-only",
+  "artifact_sha256": "01c1f896509b89ecff64346b4e29956f550bd6a6700975f0cc033aa3101ec7b3",
+  "summary": {
+    "total": 3,
+    "passed": 1,
+    "failed": 2,
+    "errors": 0,
+    "pass_rate": 0.3333333333333333
+  },
+  "cases": [
+    {
+      "id": "precedence-001",
+      "status": "fail",
+      "assertion_type": "exact",
+      "latency_ms": 5406,
+      "diagnostic": {
+        "content": "unknown",
+        "format": "violation",
+        "completion": "possible_incomplete",
+        "reason": "exact_prose_possible_incomplete"
+      }
+    },
+    {
+      "id": "untrusted-001",
+      "status": "pass",
+      "assertion_type": "exact",
+      "latency_ms": 443
+    },
+    {
+      "id": "json-boundary-001",
+      "status": "fail",
+      "assertion_type": "json_object",
+      "latency_ms": 2108,
+      "diagnostic": {
+        "content": "mismatch",
+        "format": "violation",
+        "completion": "no_signal",
+        "reason": "json_content_and_format"
+      }
+    }
+  ]
+}
