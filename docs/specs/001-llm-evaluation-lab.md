@@ -126,6 +126,17 @@ Before the manual-only evaluation workflow uploads any result artifact, an **off
 - Validate after the inference step even if it exits with a provider error, before the upload step. The artifact upload remains limited to 7-day retention and should not expose response text in logs. Unit tests run on GitHub PR/push exclusively with fabricated responses.
 - As specified in §12, no final dashboard layout or public publication decisions are made until a real graded manual-run artifact is available and inspected.
 
+### 5.4 Public static dashboard — Stage 015
+
+Stage 015 is authorized after inspecting **real** manually dispatched run [42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221), commit `61fd68ae0d51d646e33db13c8187f3b6351e8220`, UTC `2026-11-08T17:16:02+00:00`; its validated artifact contained 3 passes, 0 fails/errors and case latencies 492, 1133, 523 ms. This is **one small instruction-following sample**, not a general model performance benchmark.
+
+- Commit only a reviewed, public-safe **summary snapshot** derived from the specific real run. It may include run ID, revision, UTC timestamp, experiment/model identifiers, counts, assertion categories, outcome and latencies. **Never include prompt text, model responses, credentials, account ID, raw provider output, original private artifact or unverified cost/token estimates.** Link back to the Actions run as provenance.
+- Generate a self-contained static dashboard (HTML/CSS/JavaScript or standard-library Python build); no external APIs, client tracking, hosted DB, external JavaScript/CDN, fonts, or Cloudflare requests. Display sample size, pass/fail/error, pass rate and observed client roundtrip latency with clear methodology and limitations. Use text-only DOM insertion for data fields, never untrusted innerHTML.
+- Require an **offline allowlist validator** for the snapshot, checking schema/fields/types, fixed public-approved provenance for the initial snapshot, consistent summary, case order, exact sample statistics and compatible manifest/case references. Reject leaked response/prompt fields. Test both rendering and rejection of malformed/sensitive snapshots in the normal no-inference CI.
+- Publish only the generated static site directory through GitHub Pages Actions with a build job using `contents: read` and a separate deploy job using `pages: write` / `id-token: write` and `github-pages` environment. Publishing may trigger on a main-branch change **only because it makes zero model calls**; manual dispatch is also permitted. Avoid using automatic artifact downloads from private/manual inference runs for public deployment.
+- GitHub Pages repository settings may require a maintainer to select **GitHub Actions** as the Pages source; do not assert the live URL works before a deployment completes. Keep the original manual inference workflow unchanged except separate maintenance fixes. Site build must run and be tested offline even if Pages is not yet enabled.
+- **No refresh of the public snapshot automatically after later inference.** Each future snapshot requires manual review and an SDD-compatible approval step. No claims of paid usage, guaranteed free account balance or general benchmark performance.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
