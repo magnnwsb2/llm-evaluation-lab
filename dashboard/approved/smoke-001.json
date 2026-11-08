@@ -1,0 +1,36 @@
+{
+  "schema_version": "1.0",
+  "visibility": "public-sanitized-summary",
+  "experiment_id": "smoke-001",
+  "model": "@cf/meta/llama-3.1-8b-instruct-fp8",
+  "run_id": "42504084221",
+  "revision_sha": "61fd68ae0d51d646e33db13c8187f3b6351e8220",
+  "timestamp_utc": "2026-11-08T17:16:02+00:00",
+  "summary": {
+    "total": 3,
+    "passed": 3,
+    "failed": 0,
+    "errors": 0,
+    "pass_rate": 1
+  },
+  "cases": [
+    {
+      "id": "greeting-001",
+      "assertion_type": "exact",
+      "status": "pass",
+      "latency_ms": 492
+    },
+    {
+      "id": "keyword-001",
+      "assertion_type": "contains",
+      "status": "pass",
+      "latency_ms": 1133
+    },
+    {
+      "id": "digits-001",
+      "assertion_type": "regex",
+      "status": "pass",
+      "latency_ms": 523
+    }
+  ]
+}

@@ -31,6 +31,7 @@
 - `.github/workflows/cloudflare-smoke-test.yml` performs a manual real inference, and the user confirmed one successful run.
 - The offline JSON contracts, objective grading functions and offline CI/security workflow are implemented in `src/llm_eval/`, `tests/` and `.github/workflows/offline-ci.yml`.
 - A guarded Cloudflare provider adapter exists at `src/llm_eval/providers/cloudflare.py`; it is import-safe and is covered by offline fakes, but it does not automatically run inference.
-- A manual-only graded evaluation workflow and JSON/Markdown artifact generator exist, but **a successful real graded run has not yet been verified**.
+- Real manual graded evaluation **has been verified**: GitHub Actions run `42504084221`, commit `61fd68ae0d51d646e33db13c8187f3b6351e8220`, 3 pass, 0 fail/error; latencies 492, 1133 and 523 ms.
 - The manual workflow validates report integrity offline before uploading artifacts (`src/llm_eval/report_validation.py`); internal consistency is not evidence of a real provider call.
-- The Pages dashboard has **not** been implemented.
+- A public-summary-only Pages dashboard is implemented with offline builder, strict allowlist and manually reviewed snapshot. Do not assert that GitHub Pages is publicly live unless the deploy job succeeded.
+- Never publish the raw `results.json`, responses, prompts, the Cloudflare token or inferred billing metrics. Future results require separate review before updating the public snapshot.
