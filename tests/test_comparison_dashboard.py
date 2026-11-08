@@ -15,6 +15,9 @@ from tools.comparison import COMPARISON_CSS, render_comparison
 from tools.validate_advanced_evidence import (
     SOURCE as ADVANCED_SNAPSHOT, EvidenceError, read_evidence
 )
+from tools.validate_robustness_evidence import (
+    SOURCE as ROBUSTNESS_SNAPSHOT, read_robustness_evidence
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -24,6 +27,7 @@ class ComparativeDashboardTests(unittest.TestCase):
     def setUpClass(cls):
         cls.smoke = parse_snapshot((ROOT / SNAPSHOT).read_bytes())
         cls.advanced = read_evidence(ROOT / ADVANCED_SNAPSHOT)
+        cls.robustness = read_robustness_evidence(ROOT / ROBUSTNESS_SNAPSHOT)
 
     def test_both_observed_experiments_have_exact_trusted_values(self):
         self.assertEqual(self.smoke["run_id"], "42504084221")
@@ -41,7 +45,7 @@ class ComparativeDashboardTests(unittest.TestCase):
         self.assertEqual([c["latency_ms"] for c in self.advanced["cases"]],
                          [2760, 670, 717])
 
-    def test_generated_site_has_two_independently_attributed_experiments(self):
+    def test_generated_site_has_three_independently_attributed_experiments(self):
         with tempfile.TemporaryDirectory() as tmp:
             target = Path(tmp) / "site"
             build(ROOT, target)
@@ -50,7 +54,11 @@ class ComparativeDashboardTests(unittest.TestCase):
             self.assertEqual(sorted(p.name for p in target.iterdir()),
                              [".nojekyll", "index.html"])
             self.assertIn('id="comparacao"', markup)
-            self.assertIn("Dois experimentos. Duas evidências.", markup)
+            self.assertIn("Três experimentos. Três evidências.", markup)
+            self.assertIn("robustness-001", markup)
+            self.assertIn("33,3%", markup)
+            self.assertIn("2.652 ms", markup)
+            self.assertIn("5.406 ms", markup)
             self.assertIn("smoke-001", markup)
             self.assertIn("advanced-001", markup)
             self.assertIn("100%", markup)
@@ -66,11 +74,12 @@ class ComparativeDashboardTests(unittest.TestCase):
             for run_id, revision in (
                 ("42504084221", "61fd68ae0d51"),
                 ("42511351245", "6f90b6a2e9ce"),
+                ("42519170795", "f7f98c3082f9"),
             ):
                 with self.subTest(run=run_id):
                     self.assertIn(f"/actions/runs/{run_id}", markup)
                     self.assertIn(revision, markup)
-            self.assertEqual(markup.count('class="compare-card'), 2)
+            self.assertEqual(markup.count('class="compare-card'), 3)
             self.assertEqual(markup.count('class="compare-table'), 1)
             self.assertEqual(markup.count('class="repeat-observation"'), 1)
             self.assertIn('aria-labelledby="compare-heading"', markup)
