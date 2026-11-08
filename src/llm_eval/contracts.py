@@ -15,7 +15,11 @@ from typing import Any
 
 SCHEMA_VERSION = "1.0"
 PROVIDER = "cloudflare-workers-ai"
-FREE_MODEL_ALLOWLIST = frozenset({"@cf/meta/llama-3.1-8b-instruct-fp8"})
+# The historical model must remain loadable to validate immutable v1.0 reports.
+# Only ACTIVE_INFERENCE_MODEL is selectable in the real workflow (Stage 026).
+HISTORICAL_MODEL = "@cf/meta/llama-3.1-8b-instruct-fp8"
+ACTIVE_INFERENCE_MODEL = "@cf/google/gemma-4-26b-a4b-it"
+FREE_MODEL_ALLOWLIST = frozenset({HISTORICAL_MODEL, ACTIVE_INFERENCE_MODEL})
 MAX_CASES = 3
 MAX_REPETITIONS = 1
 MAX_OUTPUT_TOKENS = 64

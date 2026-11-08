@@ -22,7 +22,13 @@ APPROVED_EXPERIMENTS = {
     "smoke-001": MANIFEST,
     "advanced-001": "experiments/advanced-001.json",
     "robustness-001": "experiments/robustness-001.json",
+    "smoke-002": "experiments/smoke-002.json",
+    "advanced-002": "experiments/advanced-002.json",
+    "robustness-002": "experiments/robustness-002.json",
 }
+
+# Legacy selectors remain offline-valid, but can never trigger live inference.
+LIVE_EXPERIMENTS = frozenset({"smoke-002", "advanced-002", "robustness-002"})
 
 
 def select_manifest(selection: str) -> str:
@@ -30,6 +36,13 @@ def select_manifest(selection: str) -> str:
     if type(selection) is not str or selection not in APPROVED_EXPERIMENTS:
         raise ContractError("evaluation: unapproved experiment selection")
     return APPROVED_EXPERIMENTS[selection]
+
+def select_live_manifest(selection: str) -> str:
+    """Stage 026: fail closed for retired/historical manual model choices."""
+    if type(selection) is not str or selection not in LIVE_EXPERIMENTS:
+        raise ContractError("evaluation: archived or unapproved live experiment")
+    return select_manifest(selection)
+
 
 SAFE_ERROR_CATEGORIES = frozenset({
     "auth", "quota", "rate_limit", "network", "timeout", "provider", "invalid_response",
@@ -198,8 +211,8 @@ def main() -> int:
     """Entrypoint intentionally has no dynamic model/manifest CLI parameters."""
     output_dir = Path(os.environ.get("EVALUATION_OUTPUT_DIR", "evaluation-output"))
     try:
-        selection = os.environ.get("EVALUATION_EXPERIMENT", "smoke-001")
-        experiment = load_experiment(select_manifest(selection), Path("."))
+        selection = os.environ.get("EVALUATION_EXPERIMENT", "smoke-002")
+        experiment = load_experiment(select_live_manifest(selection), Path("."))
         if experiment.experiment_id != selection:
             raise ContractError("evaluation: experiment identity mismatch")
     except ContractError:

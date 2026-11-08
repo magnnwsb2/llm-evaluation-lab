@@ -7,11 +7,11 @@ on:
         description: Choose one reviewed, capped experiment (3 calls maximum)
         required: true
         type: choice
-        default: smoke-001
+        default: smoke-002
         options:
-          - smoke-001
-          - advanced-001
-          - robustness-001
+          - smoke-002
+          - advanced-002
+          - robustness-002
 
 permissions:
   contents: read

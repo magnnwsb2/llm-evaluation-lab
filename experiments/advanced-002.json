@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "advanced-002",
+  "description": "Reviewed Gemma 4 migration: identical strict JSON and repeated-prompt suite to advanced-001",
+  "provider": "cloudflare-workers-ai",
+  "model": "@cf/google/gemma-4-26b-a4b-it",
+  "cases_file": "cases/advanced.json",
+  "max_cases": 3,
+  "repetitions": 1,
+  "max_output_tokens": 64,
+  "temperature": 0
+}

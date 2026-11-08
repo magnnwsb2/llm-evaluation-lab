@@ -19,6 +19,7 @@ from typing import Any, Callable
 
 from ..contracts import (
     FREE_MODEL_ALLOWLIST,
+    ACTIVE_INFERENCE_MODEL,
     MAX_CASES,
     MAX_OUTPUT_TOKENS,
     MAX_PROMPT_CHARS,
@@ -176,16 +177,33 @@ def _post_json(
 
 
 def _response_text(payload: Any) -> str:
+    """Extract one answer from either approved Cloudflare REST envelope.
+
+    Legacy Llama returned result.response; Gemma can use chat-completion
+    result.choices[0].message.content. Never accept ambiguous or empty data.
+    """
     if type(payload) is not dict or payload.get("success") is not True:
         raise ProviderError("invalid_response")
     result = payload.get("result")
     if type(result) is not dict:
         raise ProviderError("invalid_response")
-    text = result.get("response")
-    if type(text) is not str or not text.strip():
+    has_response = "response" in result
+    has_choices = "choices" in result
+    if has_response == has_choices:
         raise ProviderError("invalid_response")
-    return text
-
+    if has_response:
+        content = result["response"]
+    else:
+        choices = result["choices"]
+        if type(choices) is not list or len(choices) != 1 or type(choices[0]) is not dict:
+            raise ProviderError("invalid_response")
+        message = choices[0].get("message")
+        if type(message) is not dict:
+            raise ProviderError("invalid_response")
+        content = message.get("content")
+    if type(content) is not str or not content.strip():
+        raise ProviderError("invalid_response")
+    return content
 
 def infer(
     experiment: Experiment,
@@ -206,10 +224,16 @@ def infer(
     url = f"{API_ORIGIN}/client/v4/accounts/{account_id}/ai/run/{experiment.model}"
     body = {
         "messages": [{"role": "user", "content": case.prompt}],
-        "max_tokens": experiment.max_output_tokens,
         "temperature": experiment.temperature,
         "stream": False,
     }
+    # Gemma 4's documented chat API prefers max_completion_tokens.
+    # Both forms are explicitly capped; never send both or rely on defaults.
+    limit_key = (
+        "max_completion_tokens"
+        if experiment.model == ACTIVE_INFERENCE_MODEL else "max_tokens"
+    )
+    body[limit_key] = experiment.max_output_tokens
     send = transport or _post_json
     timer = clock or time.perf_counter
     started = timer()

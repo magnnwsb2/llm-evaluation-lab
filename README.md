@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis. Stage 023 builds an offline cross-model comparison foundation; no additional model has been approved or executed. Stage 024 adds offline descriptive statistics and strict repeatability measurement guards; no actual repeated-run campaign is claimed.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis. Stage 023 builds an offline cross-model comparison foundation; no additional model has been approved or executed. Stage 024 adds offline descriptive statistics and strict repeatability measurement guards; no actual repeated-run campaign is claimed. Stage 025 added offline synthetic assertion probes. Stage 026 replaces new manual inference selections with the reviewed free-plan Gemma 4 model while preserving archived Llama 3.1 evidence; no real Gemma result has been verified.
 
 ## What works now
 
@@ -23,7 +23,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
 
 ```text
 .github/workflows/
-  cloudflare-smoke-test.yml  # manual, small real inference; no scoring yet
+  cloudflare-smoke-test.yml  # manually dispatched, one guarded Gemma inference
   offline-ci.yml             # push/PR tests + security scan; no inference
   manual-evaluation.yml      # manual real inference + scored artifacts
   pages-dashboard.yml        # static Pages build/deploy; no model requests
@@ -43,6 +43,9 @@ cases/smoke.json
 experiments/advanced-001.json
 cases/advanced.json
 experiments/robustness-001.json
+experiments/smoke-002.json
+experiments/advanced-002.json
+experiments/robustness-002.json
 cases/robustness.json
 docs/experiments/robustness-001.md
 tests/test_contracts.py
@@ -91,7 +94,7 @@ manually dispatch experiment
 
 To run a graded experiment: open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), select **Run workflow** on `main`, and inspect the `graded-evaluation-<run_id>` artifact. The workflow is never triggered by a push or pull request; it makes up to three sequential real inference calls and uploads `results.json` plus `report.md` (7-day retention).
 
-**Model lifecycle:** Cloudflare lists **2026-11-20** as the planned deprecation of `@cf/meta/llama-3.1-8b-instruct-fp8`. Re-evaluate the free-model allowlist before that date; do not silently replace the model in a versioned experiment.
+**Model lifecycle (Stage 026):** Cloudflare schedules retirement of `@cf/meta/llama-3.1-8b-instruct-fp8` on **2026-11-20**. Archived `*-001` manifests stay unchanged for offline validation, while only Gemma-based `*-002` manifests are offered for new manual runs. See ADR-0002.
 
 ## Report integrity and evidence
 
@@ -104,7 +107,7 @@ The Pages dashboard uses only a manually approved summary snapshot of that run. 
 
 The second reviewed experiment is `advanced-001` (see `experiments/advanced-001.json` and `cases/advanced.json`). It contains three **synthetic** cases: one strict structured JSON extraction and two identical rule-based instructions to observe repeat-prompt agreement. This is not a general benchmark.
 
-**Run from GitHub only:** Open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), choose **Run workflow**, select `advanced-001` from the **experiment** dropdown, then submit. The default `smoke-001` remains fully supported. The workflow enforces the choice independently and will not accept arbitrary repository paths or model IDs.
+**Historical note:** Stage 016's `advanced-001` was run under the archived Llama model; it remains valid evidence, but is **no longer available for new dispatch**. To run the matched suite now, choose `advanced-002` from the manual workflow dropdown (Gemma). The current default is `smoke-002`.
 
 - The `json_object` assertion retains JSON contract version `1.0`: its expected value is a serialized flat object (1–8 fields, string/int/bool/null values); the output must be a complete JSON object with identical fields and type-strict values. Explanation text, Markdown, nested objects, floats, duplicate keys or additional fields fail the objective rule rather than being misclassified as provider errors.
 - The diagnostic `report.md` classifies responses to **identical prompts** as `same`, `different` or `unavailable` if a provider call failed. A repeated mistake may be `same`; agreement is not correctness or statistical reliability. The machine-readable `results.json` format is unchanged.
@@ -120,13 +123,25 @@ Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_o
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
 
+## Stage 026 — Reviewed Gemma 4 free-plan model migration
+
+**New manual inference model:** `@cf/google/gemma-4-26b-a4b-it`. Cloudflare recommends it as a replacement for older models and listed it as available on Workers Free. Workers AI's published free allowance is **10,000 Neurons per day**, but availability, daily balance and account-specific billing settings are **not verified by offline CI**. The former `@cf/meta/llama-3.1-8b-instruct-fp8` is scheduled to stop responding on **2026-11-20**; it is now retained solely for archived `*-001` report validation and historical provenance, **not new manual dispatch**.
+
+The newly versioned **`smoke-002`**, **`advanced-002`** and **`robustness-002`** manifests reuse the original cases with the exact same scoring rules and bounded 3 cases × 1 repetition × 64 completion tokens. All original experiments and three reviewed public dashboard snapshots remain untouched. Only the `*-002` experiments are available in the live Actions dropdown. The other one-call smoke workflow also uses the new vetted adapter, rather than a hardcoded deprecated model.
+
+The adapter now supports both documented Cloudflare result envelopes: legacy `result.response` and new `result.choices[0].message.content`. Gemma requests explicitly cap `max_completion_tokens`; malformed or ambiguous payloads fail with sanitized errors. The code remains **manual-only**; neither CI nor Pages can infer. Green offline tests prove **code contracts only**, not a successful Gemma API response or zero charge.
+
+**Next action to obtain real evidence:** If your Cloudflare account is still on the free plan and has available free allocation, open the [Manual graded LLM evaluation workflow](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), choose **Run workflow** on `main`, select **`smoke-002`**, then inspect the resulting `graded-evaluation-<run_id>` artifact. Maximum 3 sequential calls with no retries or paid fallback. A real run and independent evidence review are required before reporting any new model performance or publishing a new dashboard snapshot.
+
+See [SDD-001 §5.16](docs/specs/001-llm-evaluation-lab.md) and [ADR-0002](docs/adr/0002-free-model-lifecycle.md). The **only remaining roadmap stage is 027 — final consolidation**, after a separate real-run review if explicitly authorized.
+
 ## Stage 025 — Offline objective-assertion sensitivity probes
 
 The new `src/llm_eval/mutation_probes.py` module evaluates **synthetic reference-output variants** against the four existing deterministic grading rules. For every case, it checks outer whitespace, ASCII case inversion and a fixed trailing marker. Results show which mutations each **rule** accepts or rejects; they are **not** real model outputs, accuracy measurements, exploit claims or LLM robustness scores. The regex baseline is explicitly marked as not guaranteed to match, because an expected regex is a pattern rather than an example response.
 
 Its CLI accepts only approved manifests, writes a versioned **sanitized** report under ignored `comparison-output/`, and makes **no** provider requests. It does not alter historic run grades, the model allowlist, the manual evaluation cap or the public dashboard. See [Stage 025 methodology](docs/experiments/objective-mutation-probes-025.md) and [SDD-001 §5.15](docs/specs/001-llm-evaluation-lab.md).
 
-**Remaining:** 026 reviewed model update; 027 final consolidation.
+**Stage 026 is implemented:** see the new section above; Stage 027 is the final consolidation.
 
 ## Stage 024 — Descriptive statistics and limited repeatability
 
@@ -136,17 +151,17 @@ It reports actual observed HTTP latencies (count, min, max, mean, median and **s
 
 Its sanitized `descriptive-repeatability-observation` JSON excludes all prompts, expected answers, raw model outputs, secrets, usage/cost estimates, confidence intervals and significance claims. A restrictive offline CLI accepts existing ignored `evaluation-artifacts/` folders and writes once into ignored `comparison-output/`. The three existing public historical run snapshots remain unchanged, and **no new real multi-run evidence is claimed**.
 
-Consult [Stage 024 measurement protocol](docs/experiments/statistics-repeatability-024.md) and [SDD-001 §5.14](docs/specs/001-llm-evaluation-lab.md). Next: **025 new objective strategies → 026 reviewed model update → 027 final consolidation**.
+Consult [Stage 024 measurement protocol](docs/experiments/statistics-repeatability-024.md) and [SDD-001 §5.14](docs/specs/001-llm-evaluation-lab.md). Stage 025 and the Stage 026 model migration followed; Stage 027 remains the final consolidation.
 
 ## Stage 023 — Offline matched-suite multi-model comparison foundation
 
-**No new model is active.** This stage prepares a standard-library Python comparator for two **different** models answering precisely the **same** ordered case suite with identical generation/assessment configuration. It verifies each source's existing signed-identity fields, independent strict grades, summary and canonical Markdown report using `validate_reports()` before allowing comparison. A SHA-256 fingerprint covers IDs, **complete prompt text and expected assertions**; changed prompts, model identity, rules, order, provider, temperature, call budgets or run identity are rejected.
+**At the time of Stage 023, no second model was active.** This stage prepared a standard-library Python comparator for two **different** models answering precisely the **same** ordered case suite with identical generation/assessment configuration. It verifies each source's existing signed-identity fields, independent strict grades, summary and canonical Markdown report using `validate_reports()` before allowing comparison. A SHA-256 fingerprint covers IDs, **complete prompt text and expected assertions**; changed prompts, model identity, rules, order, provider, temperature, call budgets or run identity are rejected.
 
 Only a redacted `matched-suite-observation` JSON may be produced: model/run/revision references, grade totals, observed HTTP latency means/counts, and per-case outcomes. **No raw responses, prompts, API secrets, tokens, invented costs, unsupported causal claims or rankings.** All three historical Pages runs use the same model on **different** suites, and therefore cannot be treated as an A/B model comparison. The public dashboard remains unchanged.
 
-`src/llm_eval/model_comparison.py` provides an **offline-only** CLI to read two local report folders and two repository-approved manifests. It deliberately cannot compare actual different models until Stage 026 authorizes an eligible second model. In unit tests only, a fictional second model demonstrates how the future comparison behaves; this does **not** add it to the provider allowlist or enable inference. Local `evaluation-artifacts/` and `comparison-output/` directories are gitignored.
+`src/llm_eval/model_comparison.py` provides an **offline-only** CLI to read two local report folders and two repository-approved manifests. It can accept the versioned Gemma manifests introduced in Stage 026, but must still reject comparisons until real artifact pairs exist and pass independent validation. In unit tests only, a fictional second model demonstrates how the future comparison behaves; this does **not** add it to the provider allowlist or enable inference. Local `evaluation-artifacts/` and `comparison-output/` directories are gitignored.
 
-See [Stage 023 comparison protocol](docs/experiments/model-comparison-023.md) and [SDD-001 §5.13](docs/specs/001-llm-evaluation-lab.md). The agreed next steps are **024 statistics → 025 new objective evaluation strategies → 026 model update → 027 final consolidation**. All are subject to SDD change control, manual-only inference and zero financial cost.
+See [Stage 023 comparison protocol](docs/experiments/model-comparison-023.md) and [SDD-001 §5.13](docs/specs/001-llm-evaluation-lab.md). The roadmap steps 024–026 were implemented after this foundation; Stage 027 is the final consolidation. All are subject to SDD change control, manual-only inference and zero financial cost.
 
 ## Stage 022 — Three independently reviewed real-run summaries on GitHub Pages
 
@@ -192,7 +207,7 @@ A new versioned dataset, `robustness-001`, evaluates three **objective, syntheti
 
 The rules are the same strict `exact` and `json_object` checks already used by previous experiments; **failing strict JSON remains a failure**, even if a diagnostic finds matching field values. The dataset uses no real customer data, secrets or executable attack payloads. These probes do **not** establish general protection against prompt injection or guarantee model reliability.
 
-**Manual real run, if authorized:** open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), choose **Run workflow** on `main`, and explicitly select `robustness-001` from the experiment dropdown. Do not use the *Re-run jobs* action on an older experiment. Maximum **3 sequential requests, 1 repetition, 64 output tokens per case, no retries**, with the previously reviewed model. The model may retire on **2026-11-20**: verify it remains free-plan eligible before future manual runs; do not silently substitute a paid model.
+**Historical note:** The reviewed robustness run used `robustness-001` on the old Llama model. It remains archived and unchanged. For **new** manual runs on the reviewed Gemma model, explicitly choose `robustness-002` in [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml). Never use *Re-run jobs* to reproduce an older model; maximum 3 sequential requests × 1 repetition × 64 output tokens with no retries or paid fallback.
 
 The offline CI now validates **all three manifests**, plus deterministic negative controls, no-network grading fixtures, provider-error stop and tamper-resistant reporting. Stage 021 adds offline failure-cause and canonical-report regression checks. GitHub Pages remains based **only** on the two manually audited, public-safe snapshots until a new real artifact is independently verified and approved. See [robustness experiment plan](docs/experiments/robustness-001.md) and [SDD-001 §5.10](docs/specs/001-llm-evaluation-lab.md).
 
