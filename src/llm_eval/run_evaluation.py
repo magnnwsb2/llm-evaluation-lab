@@ -20,6 +20,7 @@ MANIFEST = "experiments/smoke-001.json"  # Backward-compatible default.
 APPROVED_EXPERIMENTS = {
     "smoke-001": MANIFEST,
     "advanced-001": "experiments/advanced-001.json",
+    "robustness-001": "experiments/robustness-001.json",
 }
 
 
