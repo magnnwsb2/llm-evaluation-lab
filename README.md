@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 adds a third, still-unexecuted robustness experiment, validated offline; real inference remains manual.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 adds conservative non-scoring failure causes to future Markdown reports; the original results and public Pages snapshots remain unchanged.
 
 ## What works now
 
@@ -120,9 +120,25 @@ Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_o
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
 
+## Stage 021 — Diagnosing failure causes without changing grades
+
+The verified real robustness run [#42519170795](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42519170795) achieved **1 pass, 2 strict failures, 0 provider errors**. In the original evidence, the precedence case identified the highest sequence but produced unfinished explanatory text instead of an exact decision; the JSON case returned **wrong field values in Markdown**, so it failed both content and format.
+
+A new offline `src/llm_eval/failure_analysis.py` diagnostic distinguishes:
+
+- **Content:** match / mismatch / unknown / unavailable.
+- **Format:** conforming / violation / not_assessed / unavailable.
+- **Completion hint:** possible_incomplete / no_signal / unknown / unavailable.
+
+The diagnostics are appended only for failed or errored cases in **future** canonical `report.md` files and verified by the existing offline report-integrity gate. **Strict scores, the `results.json` version 1.0 contract and all historical artifacts remain unchanged.** The previous Stage 017 JSON-only diagnostic is retained.
+
+**Crucial limit:** a response that ends mid-sentence may be *possibly incomplete*, but the current Cloudflare adapter does not capture `finish_reason`, usage or the exact reason for stopping. This is a heuristic, **not proof** the model reached 64 output tokens. An explanation mentioning the right sequence does not prove it would have emitted the correct final answer.
+
+See the [reviewed statistics-only retrospective](docs/experiments/robustness-001-observed-42519170795.md) and [SDD-001 §5.11](docs/specs/001-llm-evaluation-lab.md). Nothing is pushed automatically to public GitHub Pages: the dashboard still shows only the two separately approved snapshots. No new inference, API keys, cloud services or subscriptions were required.
+
 ## Stage 020 — Bounded adversarial robustness probes
 
-A new versioned dataset, `robustness-001`, evaluates three **objective, synthetic** robustness dimensions. No real robustness result is yet available.
+A new versioned dataset, `robustness-001`, evaluates three **objective, synthetic** robustness dimensions. The initial real robustness run was reviewed: **1/3 approved**; its failure explanations are documented in Stage 021.
 
 | Case | Intended behavior | Failure mode under test |
 | --- | --- | --- |
@@ -134,7 +150,7 @@ The rules are the same strict `exact` and `json_object` checks already used by p
 
 **Manual real run, if authorized:** open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), choose **Run workflow** on `main`, and explicitly select `robustness-001` from the experiment dropdown. Do not use the *Re-run jobs* action on an older experiment. Maximum **3 sequential requests, 1 repetition, 64 output tokens per case, no retries**, with the previously reviewed model. The model may retire on **2026-11-20**: verify it remains free-plan eligible before future manual runs; do not silently substitute a paid model.
 
-The offline CI now validates **all three manifests**, plus deterministic negative controls, no-network grading fixtures, provider-error stop and tamper-resistant reporting. GitHub Pages remains based **only** on the two manually audited, public-safe snapshots until a new real artifact is independently verified and approved. See [robustness experiment plan](docs/experiments/robustness-001.md) and [SDD-001 §5.10](docs/specs/001-llm-evaluation-lab.md).
+The offline CI now validates **all three manifests**, plus deterministic negative controls, no-network grading fixtures, provider-error stop and tamper-resistant reporting. Stage 021 adds offline failure-cause and canonical-report regression checks. GitHub Pages remains based **only** on the two manually audited, public-safe snapshots until a new real artifact is independently verified and approved. See [robustness experiment plan](docs/experiments/robustness-001.md) and [SDD-001 §5.10](docs/specs/001-llm-evaluation-lab.md).
 
 ## Stage 019 — Responsive presentation and accessibility
 

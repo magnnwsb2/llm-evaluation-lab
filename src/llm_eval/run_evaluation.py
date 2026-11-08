@@ -15,6 +15,7 @@ from .providers.cloudflare import InferenceResult, ProviderError, infer
 from .scoring import CaseResult, grade, summarize
 from .reproducibility import compare_identical_prompts
 from .diagnostics import diagnose_json_object
+from .failure_analysis import assess_failure
 
 MANIFEST = "experiments/smoke-001.json"  # Backward-compatible default.
 APPROVED_EXPERIMENTS = {
@@ -129,6 +130,32 @@ def build_report(
             "The strict pass/fail score is unchanged by this diagnostic.",
             "A content match inside surrounding text still fails the JSON format contract.",
             "No response or prompt text is included in this report.",
+        ])
+    failure_details = [
+        assess_failure(case, result)
+        for case, result in zip(experiment.cases, results)
+        if result.status in ("fail", "error")
+    ]
+    if failure_details:
+        lines.extend([
+            "",
+            "## Failure causes (diagnostic only; scores unchanged)",
+            "",
+            "| Case | Content | Format | Completion | Reason code |",
+            "| --- | --- | --- | --- | --- |",
+        ])
+        for entry in failure_details:
+            lines.append(
+                f"| {entry.case_id} | {entry.content} | {entry.format} | "
+                f"{entry.completion} | {entry.reason} |"
+            )
+        lines.extend([
+            "",
+            "Content unknown means the final answer cannot be inferred from prose.",
+            "Possible incomplete is a heuristic, NOT a verified provider finish reason.",
+            "No provider finish_reason or token usage was measured by this report.",
+            "Diagnostics cannot promote any strict failure to a pass.",
+            "Neither prompts nor model responses are printed in this report.",
         ])
     agreements = compare_identical_prompts(experiment, results)
     if agreements:
