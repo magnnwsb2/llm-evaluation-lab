@@ -16,11 +16,11 @@ jobs:
     timeout-minutes: 5
     steps:
       - name: Checkout reviewed experiment
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python 3.12
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: '3.12'
       - name: Run bounded real inference and grade responses
@@ -43,7 +43,7 @@ jobs:
         run: python -m llm_eval.report_validation
       - name: Upload evaluation evidence (even on provider errors)
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: graded-evaluation-${{ github.run_id }}
           path: |
