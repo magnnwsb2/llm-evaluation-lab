@@ -169,6 +169,8 @@ def _source_folder(root: Path, relative: str) -> Path:
 def _read_markdown(folder: Path) -> str:
     path = folder / "report.md"
     try:
+        if path.is_symlink() or not path.is_file():
+            _fail()
         if path.stat().st_size > MAX_REPORT_BYTES:
             _fail()
         return path.read_text(encoding="utf-8")
@@ -210,6 +212,10 @@ def main(argv: list[str] | None = None) -> int:
         second = load_experiment(select_manifest(arguments.right_experiment), root)
         first_folder = _source_folder(root, arguments.left_folder)
         second_folder = _source_folder(root, arguments.right_folder)
+        # Downloads are untrusted input, not an excuse to follow symlinks.
+        for source in (first_folder / "results.json", second_folder / "results.json"):
+            if source.is_symlink() or not source.is_file():
+                _fail()
         left = _read_report(first_folder / "results.json")
         right = _read_report(second_folder / "results.json")
         safe = compare_models(
