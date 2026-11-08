@@ -35,3 +35,5 @@
 - The manual workflow validates report integrity offline before uploading artifacts (`src/llm_eval/report_validation.py`); internal consistency is not evidence of a real provider call.
 - A public-summary-only Pages dashboard is implemented with offline builder, strict allowlist and manually reviewed snapshot. Do not assert that GitHub Pages is publicly live unless the deploy job succeeded.
 - Never publish the raw `results.json`, responses, prompts, the Cloudflare token or inferred billing metrics. Future results require separate review before updating the public snapshot.
+- Stage 015 and 015.1 have succeeded in GitHub Actions Pages deployment; live dashboard is based on the reviewed run #42504084221 only.
+- Stage 016 adds a strictly allowlisted optional manual `advanced-001` experiment, structured `json_object` scoring, and repeat-prompt diagnostic, without increasing caps or publishing new model responses. An actual successful advanced real run is **not** established by offline tests.

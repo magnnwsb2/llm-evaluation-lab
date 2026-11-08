@@ -30,7 +30,9 @@ jobs:
       - name: Validate versioned example
         env:
           PYTHONPATH: src
-        run: python -m llm_eval validate experiments/smoke-001.json
+        run: |
+          python -m llm_eval validate experiments/smoke-001.json
+          python -m llm_eval validate experiments/advanced-001.json
 
   secret-scanner:
     name: Independent repository security gate

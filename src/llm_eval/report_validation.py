@@ -14,7 +14,7 @@ from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 from .contracts import ContractError, Experiment, load_experiment
-from .run_evaluation import MANIFEST, build_report
+from .run_evaluation import MANIFEST, build_report, select_manifest
 from .scoring import CaseResult, ERROR_CATEGORIES, grade, summarize
 
 MAX_REPORT_BYTES = 256 * 1024
@@ -195,9 +195,10 @@ def validate_reports(
 
 
 def validate_files(
-    folder: Path, *, repo_root: Path, run_id: str, revision: str
+    folder: Path, *, repo_root: Path, run_id: str, revision: str,
+    manifest: str = MANIFEST,
 ) -> None:
-    experiment = load_experiment(MANIFEST, repo_root)
+    experiment = load_experiment(manifest, repo_root)
     doc = _read_report(folder / "results.json")
     try:
         path = folder / "report.md"
@@ -218,6 +219,7 @@ def main() -> int:
             repo_root=Path("."),
             run_id=os.environ.get("GITHUB_RUN_ID", ""),
             revision=os.environ.get("GITHUB_SHA", ""),
+            manifest=select_manifest(os.environ.get("EVALUATION_EXPERIMENT", "smoke-001")),
         )
     except (ContractError, OSError, ValueError, TypeError):
         print("Evaluation artifact validation failed.", file=sys.stderr)
