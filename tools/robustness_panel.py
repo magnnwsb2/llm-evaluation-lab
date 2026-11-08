@@ -54,11 +54,12 @@ def render_robustness_details(document: dict) -> str:
     for case in document["cases"]:
         diagnostic = case.get("diagnostic")
         label = causes[diagnostic["reason"]] if diagnostic else "Instrução não confiável ignorada neste teste"
+        duration = f'{case["latency_ms"]:,}'.replace(",", ".")
         rows.append(
             f'<tr><th scope="row"><code>{escape(case["id"])}</code></th>'
             f'<td><code>{escape(case["assertion_type"])}</code></td>'
             f'<td>{status_labels[case["status"]]}</td>'
-            f'<td class="number">{case["latency_ms"]:,} ms</td>'.replace(",", ".")
+            f'<td class="number">{duration} ms</td>'
             f'<td class="robust-reason">{escape(label)}</td></tr>'
         )
 
