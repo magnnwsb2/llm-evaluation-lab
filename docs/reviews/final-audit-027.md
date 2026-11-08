@@ -57,8 +57,8 @@ Offline-only modules for **matched-case cross-model comparison** (Stage 023), **
 - [x] Five real run artifact ZIPs hashed; source metadata and outcomes documented without raw model text.
 - [x] Stage 027 security hardening and documentation changes implemented on a separate reviewed PR.
 - [x] Final reproducible security tests added to offline CI; no inference, cloud provision or model-change request.
-- [ ] **PR and post-merge green CI links:** populate only from actually observed successful runs after the PR passes; do not assume success.
-- [ ] **Final Pages check (if deployment triggered):** capture the confirmed job result, otherwise refer to the already successful last verified release.
+- [x] PR #20 [offline CI #42528843377](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42528843377): **207 Python tests passed**, all six manifests validated and **0 security blockers / 0 review items** in the independent scanner.
+- **Required operational handoff after merge:** explicitly verify the new `main` CI and, if the SDD change triggers it, the Pages build/deployment. The final handoff message must cite the observed run IDs; this pre-merge audit does not guess future GitHub Actions run IDs or claim the deploy has already completed.
 
 **Not certified by this audit:** zero secret exposure anywhere in all historic Git objects, real billing balance after Gemma, encryption or private access for GitHub artifact ZIPs, model determinism, statistically significant comparative performance, evaluation over real customer data, comprehensive prompt-injection defenses, or long-term availability of a free model.
 
