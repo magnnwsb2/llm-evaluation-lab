@@ -137,6 +137,15 @@ Stage 015 is authorized after inspecting **real** manually dispatched run [42504
 - GitHub Pages repository settings may require a maintainer to select **GitHub Actions** as the Pages source; do not assert the live URL works before a deployment completes. Keep the original manual inference workflow unchanged except separate maintenance fixes. Site build must run and be tested offline even if Pages is not yet enabled.
 - **No refresh of the public snapshot automatically after later inference.** Each future snapshot requires manual review and an SDD-compatible approval step. No claims of paid usage, guaranteed free account balance or general benchmark performance.
 
+### 5.5 Static dashboard visual regression remediation — Stage 015.1
+
+The first deployed GitHub Pages dashboard displayed correct numerical results but the user's visual inspection identified invisible latency bars, joined statistic labels and cramped table columns. The root cause is an unclosed CSS `linear-gradient(` call in the inline stylesheet that can invalidate following CSS rules; this is a rendering defect, not a change in the underlying experiment.
+
+- Correct CSS syntax and strengthen responsive two-column statistics, visible latency bars and legible tabular padding/headers at desktop and narrow widths.
+- Add offline rendering regression checks that reject unbalanced CSS grouping, verify vital CSS/HTML structural hooks and preserve the reviewed source snapshot, counts, case latencies and GitHub Actions provenance.
+- Remain compatible with §5.4: static Python standard-library generation; no external assets, scripts, new providers, inference, automatic snapshot updates, credentials or billing claims.
+- Require the existing no-inference PR test/security checks and successful Pages build/deploy before declaring the visual fix published. Automated structural tests do **not** replace actual cross-device browser inspection.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.

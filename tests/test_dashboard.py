@@ -43,6 +43,44 @@ class DashboardTests(unittest.TestCase):
             self.assertNotIn("<script", markup.lower())
             self.assertNotIn("fetch(", markup)
 
+    def test_visual_css_regressions(self):
+        """A missing parenthesis in CSS hid charts and broke later layout rules."""
+        markup = render(self.snapshot)
+        stylesheet = markup.split("<style>", 1)[1].split("</style>", 1)[0]
+        for opening, closing in (("(", ")"), ("{", "}")):
+            with self.subTest(grouping=opening + closing):
+                self.assertEqual(
+                    stylesheet.count(opening), stylesheet.count(closing),
+                    "A stylesheet grouping is unbalanced: rendering may fail.",
+                )
+        # Confirm the rendered stylesheet has its closed gradient and proper
+        # structure after the previously broken .bar declaration.
+        self.assertIn(
+            "background:linear-gradient(90deg,var(--accent),var(--purple))",
+            stylesheet,
+        )
+        self.assertIn(".stats{display:grid;", stylesheet)
+        self.assertIn(".stat strong{display:block;", stylesheet)
+        self.assertIn(".stat span{display:block;", stylesheet)
+        self.assertIn(".table-wrap{overflow-x:auto;", stylesheet)
+        self.assertIn("table{border-collapse:collapse;width:100%;min-width:560px;", stylesheet)
+        self.assertIn("th,td{padding:18px 18px;", stylesheet)
+        self.assertIn("@media(max-width:800px)", stylesheet)
+        self.assertIn("@media(max-width:540px)", stylesheet)
+
+    def test_chart_metrics_and_table_remain_populated(self):
+        """HTML carries all reviewed values; CSS may not conceal them."""
+        markup = render(self.snapshot)
+        self.assertEqual(markup.count("class='bar'"), 3)
+        self.assertEqual(markup.count("class='track'"), 3)
+        self.assertEqual(markup.count('<div class="stat">'), 4)
+        self.assertEqual(markup.count("<tr>"), 4)  # heading + three cases
+        self.assertIn("716 ms", markup)
+        self.assertIn("492 ms", markup)
+        self.assertIn("1133 ms", markup)
+        self.assertIn("523 ms", markup)
+        self.assertIn("overflow-x:auto;", markup)
+
     def test_rejects_sensitive_and_unapproved_fields(self):
         for addition in (
             {"response": "some secret response"},
