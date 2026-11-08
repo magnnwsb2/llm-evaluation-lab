@@ -4,7 +4,7 @@
 
 This is a **public, educational LLM evaluation laboratory with synthetic test cases only**. It is not a service for private documents, confidential business data, credentials, production tickets or customer records. Do **not** add real customer data to `cases/`, prompts, assertions, local artifacts or GitHub Actions logs.
 
-The public GitHub Pages dashboard intentionally contains only manually reviewed, strict allowlisted results without prompt/response text. **This does not mean every GitHub Actions artifact is private:** the `Manual graded LLM evaluation` job uploads `results.json` (including complete model responses) and a response-free `report.md` to a **public repository** with seven-day retention. Repository Actions artifacts may be accessible via GitHub. Use synthetic inputs only.
+The public GitHub Pages dashboard intentionally contains only manually reviewed, strict allowlisted results without prompt/response text. **This does not mean every GitHub Actions artifact is private:** the `Manual graded LLM evaluation` job uploads `results.json` (including full synthetic model responses) and a response-free `report.md` to a **public repository** with seven-day retention. Repository Actions artifacts may be accessible via GitHub. Use synthetic inputs only.
 
 ## Credentials and billing
 
