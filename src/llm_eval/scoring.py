@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from .contracts import Case, ContractError
+from .json_object import objects_match
 
 ERROR_CATEGORIES = frozenset({
     "auth", "quota", "rate_limit", "network", "timeout",
@@ -58,6 +59,8 @@ def grade(
         passed = assertion.expected in response
     elif assertion.type == "regex":
         passed = re.search(assertion.expected, response) is not None
+    elif assertion.type == "json_object":
+        passed = objects_match(response, assertion.expected)
     else:
         raise ContractError("assertion.type: unsupported")
     return CaseResult(
