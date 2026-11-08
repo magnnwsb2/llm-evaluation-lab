@@ -8,7 +8,10 @@ on:
       - 'tools/build_dashboard.py'
       - 'tools/comparison.py'
       - 'tools/validate_advanced_evidence.py'
+      - 'tools/validate_robustness_evidence.py'
+      - 'tools/robustness_panel.py'
       - 'tests/test_comparison_dashboard.py'
+      - 'tests/test_stage022_robustness_dashboard.py'
       - 'tests/test_stage019_visual_accessibility.py'
       - 'docs/specs/001-llm-evaluation-lab.md'
       - '.github/workflows/pages-dashboard.yml'
@@ -37,14 +40,16 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Test both approved snapshots and static renderers offline
+      - name: Validate all three approved snapshots and renderers offline
         env:
           PYTHONPATH: .
         run: |
           python tools/validate_advanced_evidence.py
+          python tools/validate_robustness_evidence.py
           python -m unittest discover -s tests -p 'test_dashboard.py' -v
           python -m unittest discover -s tests -p 'test_comparison_dashboard.py' -v
           python -m unittest discover -s tests -p 'test_stage019_visual_accessibility.py' -v
+          python -m unittest discover -s tests -p 'test_stage022_robustness_dashboard.py' -v
       - name: Build public static site (no inference)
         run: python tools/build_dashboard.py
       - name: Configure GitHub Pages publishing
