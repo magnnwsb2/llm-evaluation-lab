@@ -6,6 +6,9 @@ on:
     paths:
       - 'dashboard/approved/**'
       - 'tools/build_dashboard.py'
+      - 'tools/comparison.py'
+      - 'tools/validate_advanced_evidence.py'
+      - 'tests/test_comparison_dashboard.py'
       - 'docs/specs/001-llm-evaluation-lab.md'
       - '.github/workflows/pages-dashboard.yml'
   workflow_dispatch:
