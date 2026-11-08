@@ -9,6 +9,7 @@ on:
       - 'tools/comparison.py'
       - 'tools/validate_advanced_evidence.py'
       - 'tests/test_comparison_dashboard.py'
+      - 'tests/test_stage019_visual_accessibility.py'
       - 'docs/specs/001-llm-evaluation-lab.md'
       - '.github/workflows/pages-dashboard.yml'
   workflow_dispatch:
@@ -43,6 +44,7 @@ jobs:
           python tools/validate_advanced_evidence.py
           python -m unittest discover -s tests -p 'test_dashboard.py' -v
           python -m unittest discover -s tests -p 'test_comparison_dashboard.py' -v
+          python -m unittest discover -s tests -p 'test_stage019_visual_accessibility.py' -v
       - name: Build public static site (no inference)
         run: python tools/build_dashboard.py
       - name: Configure GitHub Pages publishing
