@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "id": "json-ticket-001",
+      "prompt": "Extract only the fields ticket, priority and retries from this synthetic incident: Ticket INC-042; priority high; retries 3. Return one JSON object with ticket and priority as strings and retries as an integer. No markdown, text, or extra fields.",
+      "assertion": {
+        "type": "json_object",
+        "expected": "{\"ticket\":\"INC-042\",\"priority\":\"high\",\"retries\":3}"
+      }
+    },
+    {
+      "id": "decision-001",
+      "prompt": "Synthetic alert: severity=high; retries=4. Rule: if severity is high AND retries >= 3 reply exactly ESCALATE; otherwise reply exactly MONITOR. Output just the one uppercase word; no punctuation or explanation.",
+      "assertion": {
+        "type": "exact",
+        "expected": "ESCALATE"
+      }
+    },
+    {
+      "id": "decision-002",
+      "prompt": "Synthetic alert: severity=high; retries=4. Rule: if severity is high AND retries >= 3 reply exactly ESCALATE; otherwise reply exactly MONITOR. Output just the one uppercase word; no punctuation or explanation.",
+      "assertion": {
+        "type": "exact",
+        "expected": "ESCALATE"
+      }
+    }
+  ]
+}
