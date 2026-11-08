@@ -13,8 +13,21 @@ from typing import Callable
 from .contracts import ContractError, Experiment, load_experiment
 from .providers.cloudflare import InferenceResult, ProviderError, infer
 from .scoring import CaseResult, grade, summarize
+from .reproducibility import compare_identical_prompts
 
-MANIFEST = "experiments/smoke-001.json"
+MANIFEST = "experiments/smoke-001.json"  # Backward-compatible default.
+APPROVED_EXPERIMENTS = {
+    "smoke-001": MANIFEST,
+    "advanced-001": "experiments/advanced-001.json",
+}
+
+
+def select_manifest(selection: str) -> str:
+    """Only reviewed, repository-controlled experiment choices can run inference."""
+    if type(selection) is not str or selection not in APPROVED_EXPERIMENTS:
+        raise ContractError("evaluation: unapproved experiment selection")
+    return APPROVED_EXPERIMENTS[selection]
+
 SAFE_ERROR_CATEGORIES = frozenset({
     "auth", "quota", "rate_limit", "network", "timeout", "provider", "invalid_response",
 })
@@ -94,6 +107,26 @@ def build_report(
             f"| {item.id} | {item.status} | {item.assertion_type} | "
             f"{latency} | {item.error_category or '—'} |"
         )
+    agreements = compare_identical_prompts(experiment, results)
+    if agreements:
+        lines.extend([
+            "",
+            "## Repeated-prompt agreement (diagnostic only)",
+            "",
+            "| First case | Second case | Outcome |",
+            "| --- | --- | --- |",
+        ])
+        for item in agreements:
+            lines.append(
+                f"| {item.first_id} | {item.second_id} | {item.outcome} |"
+            )
+        lines.extend([
+            "",
+            "Agreement compares response text after trimming outer whitespace.",
+            "Same does not imply correct; different does not prove an error.",
+            "Unavailable means at least one model call returned a provider error.",
+            "This small sample does not estimate statistical reproducibility.",
+        ])
     lines += [
         "", "Results are based on objective rules, not a second LLM judge.",
         "Response text is kept only in results.json; no prompts or responses are logged.",
@@ -115,7 +148,10 @@ def main() -> int:
     """Entrypoint intentionally has no dynamic model/manifest CLI parameters."""
     output_dir = Path(os.environ.get("EVALUATION_OUTPUT_DIR", "evaluation-output"))
     try:
-        experiment = load_experiment(MANIFEST, Path("."))
+        selection = os.environ.get("EVALUATION_EXPERIMENT", "smoke-001")
+        experiment = load_experiment(select_manifest(selection), Path("."))
+        if experiment.experiment_id != selection:
+            raise ContractError("evaluation: experiment identity mismatch")
     except ContractError:
         print("Experiment contract validation failed.", file=sys.stderr)
         return 2
