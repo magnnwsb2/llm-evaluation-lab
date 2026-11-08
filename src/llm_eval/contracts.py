@@ -162,8 +162,8 @@ def _validate_cases(data: dict[str, Any], max_cases: int) -> tuple[Case, ...]:
         prompt = _string(item["prompt"], "case.prompt", MAX_PROMPT_CHARS)
         assertion = _fields(item["assertion"], {"type", "expected"}, "assertion")
         kind = assertion["type"]
-        if type(kind) is not str or kind not in ("exact", "contains", "regex"):
-            raise ContractError("assertion.type: expected exact, contains or regex")
+        if type(kind) is not str or kind not in ("exact", "contains", "regex", "json_object"):
+            raise ContractError("assertion.type: unsupported objective rule")
         expected = _string(assertion["expected"], "assertion.expected", MAX_PROMPT_CHARS)
         if kind == "regex":
             if len(expected) > MAX_PATTERN_CHARS:
@@ -172,6 +172,11 @@ def _validate_cases(data: dict[str, Any], max_cases: int) -> tuple[Case, ...]:
                 re.compile(expected)
             except re.error as exc:
                 raise ContractError("assertion.expected: invalid regex") from exc
+        if kind == "json_object":
+            # Deferred import avoids a circular module dependency: the parser
+            # reuses ContractError but has no network or file side effects.
+            from .json_object import parse_flat_object
+            parse_flat_object(expected, max_chars=MAX_PROMPT_CHARS)
         cases.append(Case(identifier, prompt, Assertion(kind, expected)))
     return tuple(cases)
 
