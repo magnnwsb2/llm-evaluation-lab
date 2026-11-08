@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "cases": [
+    {
+      "id": "greeting-001",
+      "prompt": "Reply with exactly: OK",
+      "assertion": {
+        "type": "exact",
+        "expected": "OK"
+      }
+    },
+    {
+      "id": "keyword-001",
+      "prompt": "Write a short sentence containing the uppercase word SUNRISE.",
+      "assertion": {
+        "type": "contains",
+        "expected": "SUNRISE"
+      }
+    },
+    {
+      "id": "digits-001",
+      "prompt": "Reply using exactly three digits and no other characters.",
+      "assertion": {
+        "type": "regex",
+        "expected": "^[0-9]{3}$"
+      }
+    }
+  ]
+}
