@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "robustness-001",
+  "description": "Synthetic robustness probes for precedence, untrusted instructions and strict JSON boundaries",
+  "provider": "cloudflare-workers-ai",
+  "model": "@cf/meta/llama-3.1-8b-instruct-fp8",
+  "cases_file": "cases/robustness.json",
+  "max_cases": 3,
+  "repetitions": 1,
+  "max_output_tokens": 64,
+  "temperature": 0
+}
