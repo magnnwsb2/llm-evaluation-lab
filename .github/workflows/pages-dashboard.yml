@@ -26,7 +26,7 @@ jobs:
       contents: read
     steps:
       - name: Checkout reviewed static source
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           persist-credentials: false
       - name: Set up Python 3.12
@@ -39,6 +39,8 @@ jobs:
         run: python -m unittest discover -s tests -p 'test_dashboard.py' -v
       - name: Build public static site (no inference)
         run: python tools/build_dashboard.py
+      - name: Configure GitHub Pages publishing
+        uses: actions/configure-pages@v5
       - name: Upload Pages site artifact
         uses: actions/upload-pages-artifact@v4
         with:
