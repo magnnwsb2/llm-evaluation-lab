@@ -34,6 +34,9 @@ jobs:
           python -m llm_eval validate experiments/smoke-001.json
           python -m llm_eval validate experiments/advanced-001.json
           python -m llm_eval validate experiments/robustness-001.json
+          python -m llm_eval validate experiments/smoke-002.json
+          python -m llm_eval validate experiments/advanced-002.json
+          python -m llm_eval validate experiments/robustness-002.json
       - name: Verify manually reviewed advanced statistics-only evidence
         run: python tools/validate_advanced_evidence.py
       - name: Verify reviewed robustness statistics-only evidence
