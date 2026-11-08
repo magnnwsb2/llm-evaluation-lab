@@ -14,6 +14,7 @@ from .contracts import ContractError, Experiment, load_experiment
 from .providers.cloudflare import InferenceResult, ProviderError, infer
 from .scoring import CaseResult, grade, summarize
 from .reproducibility import compare_identical_prompts
+from .diagnostics import diagnose_json_object
 
 MANIFEST = "experiments/smoke-001.json"  # Backward-compatible default.
 APPROVED_EXPERIMENTS = {
@@ -107,6 +108,27 @@ def build_report(
             f"| {item.id} | {item.status} | {item.assertion_type} | "
             f"{latency} | {item.error_category or '—'} |"
         )
+    json_diagnostics = [
+        diagnose_json_object(case, result)
+        for case, result in zip(experiment.cases, results)
+        if case.assertion.type == "json_object"
+    ]
+    if json_diagnostics:
+        lines.extend([
+            "",
+            "## Structured JSON diagnosis (non-scoring)",
+            "",
+            "| Case | Diagnostic |",
+            "| --- | --- |",
+        ])
+        for item in json_diagnostics:
+            lines.append(f"| {item.case_id} | {item.outcome} |")
+        lines.extend([
+            "",
+            "The strict pass/fail score is unchanged by this diagnostic.",
+            "A content match inside surrounding text still fails the JSON format contract.",
+            "No response or prompt text is included in this report.",
+        ])
     agreements = compare_identical_prompts(experiment, results)
     if agreements:
         lines.extend([
