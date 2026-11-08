@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 017 adds diagnostic-only analysis and an audited statistics snapshot.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages, without new inference or private responses.
 
 ## What works now
 
@@ -50,7 +50,10 @@ tests/test_report_validation.py
 tests/test_advanced_evaluation.py
 tests/test_dashboard.py
 dashboard/approved/smoke-001.json  # approved public-safe snapshot; no responses
-tools/build_dashboard.py        # offline static dashboard generator
+tools/build_dashboard.py        # offline static dashboard builder
+tools/comparison.py             # two reviewed-run comparisons only
+tests/test_comparison_dashboard.py
+
 ```
 
 ## Running entirely through GitHub
@@ -110,7 +113,22 @@ The real [advanced run #42511351245](https://github.com/magnnwsb2/llm-evaluation
 
 Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_object`: `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable`, and `unavailable`. A response with correct content but invalid surrounding text **remains a strict failure**. This diagnostic is included in the canonical `report.md` for **future** manually dispatched evaluations, with no prompts or responses copied into the Markdown. The `results.json` schema, historical artifacts, pass rates, three-call cap, model, credentials and manual-only execution remain unchanged.
 
-The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated and **not yet displayed on the public Pages dashboard**; a future dashboard expansion requires its own review. The previously published smoke snapshot remains unchanged.
+The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
+
+## Stage 018 — Reviewed static comparison on GitHub Pages
+
+The static dashboard now shows **both** real, manually reviewed experiments side by side, while preserving the original smoke-focused hero, bar chart and individual results. The data sources remain the two separately audited, immutable-until-review snapshots:
+
+| Experiment | Original run | Pass | Fail | Error | Observed mean HTTP latency |
+| --- | --- | ---: | ---: | ---: | ---: |
+| `smoke-001` | [#42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221) | 3 | 0 | 0 | 716 ms |
+| `advanced-001` | [#42511351245](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42511351245) | 2 | 1 | 0 | 1,382 ms |
+
+The new panel presents the advanced case-level result and explains that `json-ticket-001` had matching extracted values but **failed strict JSON-only output formatting**; it **remains a failure** in the 2/3 score. The two identical classification prompts yielded one matching pair, which **does not prove deterministic inference or general accuracy**. The two experiment samples use different tasks and **are not a controlled A/B comparison or benchmark**.
+
+Implementation: `tools/comparison.py` renders a plain static accessible HTML/CSS comparison and `tools/build_dashboard.py` validates both snapshots **before** writing `_site/index.html`. Only reviewed metadata and statistics are emitted. The Pages workflow independently validates `dashboard/approved/advanced-001.json`, runs both old and new dashboard tests, and deploys the static output. The existing model runner, `results.json` contracts, automatic-free inference guardrails, limits and original snapshots remain unchanged.
+
+A later real run does **not** update the public view automatically; each new public snapshot requires separate source review. Do not interpret these percentages as general model quality or infer tokens, Neurons or financial costs from HTTP latency.
 
 ## Public dashboard — Stage 015
 

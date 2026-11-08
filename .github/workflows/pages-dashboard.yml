@@ -6,6 +6,9 @@ on:
     paths:
       - 'dashboard/approved/**'
       - 'tools/build_dashboard.py'
+      - 'tools/comparison.py'
+      - 'tools/validate_advanced_evidence.py'
+      - 'tests/test_comparison_dashboard.py'
       - 'docs/specs/001-llm-evaluation-lab.md'
       - '.github/workflows/pages-dashboard.yml'
   workflow_dispatch:
@@ -33,10 +36,13 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: '3.12'
-      - name: Test public snapshot and offline renderer
+      - name: Test both approved snapshots and static renderers offline
         env:
           PYTHONPATH: .
-        run: python -m unittest discover -s tests -p 'test_dashboard.py' -v
+        run: |
+          python tools/validate_advanced_evidence.py
+          python -m unittest discover -s tests -p 'test_dashboard.py' -v
+          python -m unittest discover -s tests -p 'test_comparison_dashboard.py' -v
       - name: Build public static site (no inference)
         run: python tools/build_dashboard.py
       - name: Configure GitHub Pages publishing

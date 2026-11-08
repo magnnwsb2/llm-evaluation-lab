@@ -1,6 +1,6 @@
 """Offline, allowlisted generation of the public GitHub Pages dashboard.
 
-One reviewed real-run snapshot only. Never contacts Cloudflare or reads secrets.
+Only two approved historical snapshots. Never contacts Cloudflare or reads secrets.
 """
 from __future__ import annotations
 
@@ -10,6 +10,13 @@ import math
 import re
 import sys
 from pathlib import Path
+
+if __package__:
+    from .comparison import COMPARISON_CSS, render_comparison
+    from .validate_advanced_evidence import SOURCE as ADVANCED_SNAPSHOT, read_evidence
+else:  # Supports python tools/build_dashboard.py directly on GitHub Actions.
+    from comparison import COMPARISON_CSS, render_comparison
+    from validate_advanced_evidence import SOURCE as ADVANCED_SNAPSHOT, read_evidence
 
 SNAPSHOT = Path("dashboard/approved/smoke-001.json")
 PROVENANCE = {
@@ -96,8 +103,9 @@ def validate_snapshot(doc: object) -> dict:
     return doc
 
 
-def render(doc: dict) -> str:
+def render(doc: dict, advanced: dict | None = None) -> str:
     doc = validate_snapshot(doc)
+    comparison_html = render_comparison(doc, advanced) if advanced is not None else ""
     e = html.escape
     cases = doc["cases"]
     summary = doc["summary"]
@@ -160,6 +168,7 @@ footer{{margin-top:50px;color:var(--muted);font-size:.85rem;border-top:1px solid
 code{{color:var(--fg);overflow-wrap:anywhere}}
 @media(max-width:800px){{.grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.twocol{{grid-template-columns:1fr}}}}
 @media(max-width:540px){{main{{padding:24px 16px 55px}}nav{{margin-bottom:38px}}.grid{{gap:10px}}.card,.panel{{padding:17px}}.value{{font-size:1.9rem}}.bar-row{{grid-template-columns:88px minmax(40px,1fr) 65px;gap:8px;font-size:.73rem}}}}
+{COMPARISON_CSS}
 </style>
 </head>
 <body>
@@ -190,6 +199,7 @@ code{{color:var(--fg);overflow-wrap:anywhere}}
 <section class="panel"><h2>Resultados por caso</h2><div class="table-wrap">
 <table><thead><tr><th>Caso</th><th>Critério</th><th>Status</th><th class="number">Latência</th></tr></thead>
 <tbody>{rows}</tbody></table></div></section>
+{comparison_html}
 <section class="panel"><h2>Metodologia e limites</h2>
 <p>Três casos sintéticos de instruções simples, avaliados com as regras determinísticas <strong>exact</strong>, <strong>contains</strong> e <strong>regex</strong>. Uma repetição por caso; temperatura zero. Aprovação significa atendimento à regra específica, não validação ampla de segurança, precisão ou raciocínio.</p>
 <p>Essa amostra <strong>não</strong> representa um benchmark geral nem garante resultados futuros. Consumo de tokens, Neurons e custo financeiro não foram medidos. Nenhuma resposta completa ou prompt é publicado neste painel.</p>
@@ -202,8 +212,11 @@ code{{color:var(--fg);overflow-wrap:anywhere}}
 
 def build(root: Path, output: Path) -> None:
     doc = parse_snapshot((root / SNAPSHOT).read_bytes())
+    advanced = read_evidence(root / ADVANCED_SNAPSHOT)
+    # Both source snapshots are validated before creating any public output.
+    markup = render(doc, advanced)
     output.mkdir(parents=True, exist_ok=True)
-    (output / "index.html").write_text(render(doc), encoding="utf-8")
+    (output / "index.html").write_text(markup, encoding="utf-8")
     (output / ".nojekyll").write_text("", encoding="utf-8")
 
 
@@ -213,7 +226,7 @@ def main() -> int:
     except (DashboardValidationError, OSError, UnicodeError, ValueError):
         print("Public dashboard build blocked: invalid approved snapshot.", file=sys.stderr)
         return 2
-    print("Static public dashboard generated from one reviewed real-run snapshot.")
+    print("Static public dashboard generated from two approved real-run summaries.")
     return 0
 
 
