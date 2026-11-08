@@ -68,9 +68,12 @@ def validate_evidence(document: object) -> None:
     """Exact approved statistics; no unreviewed or sensitive keys can escape."""
     if type(document) is not dict:
         raise EvidenceError("invalid evidence document")
-    if json.dumps(document, sort_keys=True, allow_nan=False) != json.dumps(
-        EXPECTED, sort_keys=True, allow_nan=False
-    ):
+    try:
+        serialized = json.dumps(document, sort_keys=True, allow_nan=False)
+        reference = json.dumps(EXPECTED, sort_keys=True, allow_nan=False)
+    except (TypeError, ValueError, OverflowError):
+        raise EvidenceError("evidence contains invalid JSON values") from None
+    if serialized != reference:
         raise EvidenceError("evidence differs from manually reviewed run")
     # JSON comparison alone considers True == 1; reject type confusion recursively.
     def types_match(left: object, right: object) -> bool:
