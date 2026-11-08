@@ -1,4 +1,4 @@
-"""Static, reviewed two-experiment comparison for the public GitHub Pages site.
+"""Static, reviewed multi-experiment comparison for public GitHub Pages.
 
 No networking, runtime account information, inference, dynamic JavaScript, or
 unreviewed artifacts. Historical runs use different prompts: this is NOT a
@@ -12,8 +12,12 @@ from statistics import mean
 
 if __package__:
     from .validate_advanced_evidence import validate_evidence
+    from .validate_robustness_evidence import validate_robustness_evidence
+    from .robustness_panel import ROBUSTNESS_CSS, render_robustness_details
 else:  # python tools/build_dashboard.py (script execution)
     from validate_advanced_evidence import validate_evidence
+    from validate_robustness_evidence import validate_robustness_evidence
+    from robustness_panel import ROBUSTNESS_CSS, render_robustness_details
 
 
 RUN_PREFIX = "https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/"
@@ -25,8 +29,8 @@ COMPARISON_CSS = """
 .compare-section>h2{font-size:clamp(1.6rem,3.6vw,2.15rem);line-height:1.17;letter-spacing:-.025em;margin:8px 0 20px}
 .compare-section>.eyebrow{font-size:.82rem}
 .compare-intro{max-width:760px;color:var(--muted);font-size:.99rem;margin:12px 0 26px}
-.compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
-.compare-card{border:1px solid var(--line);background:linear-gradient(155deg,var(--surface),#111c2d);border-radius:18px;padding:22px;min-width:0}
+.compare-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.compare-card{border:1px solid var(--line);background:linear-gradient(155deg,var(--surface),#111c2d);border-radius:18px;padding:20px;min-width:0}
 .compare-card.advanced{border-color:#735e3b}
 .compare-topline{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
 .compare-tag{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:4px 10px;font-size:.75rem;color:var(--muted)}
@@ -54,9 +58,10 @@ COMPARISON_CSS = """
 .repeat-observation strong{color:var(--green)}
 .repeat-observation span{color:var(--muted);font-size:.88rem}
 .compare-footer{color:var(--muted);font-size:.86rem;line-height:1.7;margin:18px 0 0}
+@media(max-width:940px){.compare-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:800px){.compare-grid{grid-template-columns:1fr}}
 @media(max-width:540px){.compare-section>h2{font-size:1.6rem}.compare-card{padding:18px}.compare-percent{font-size:2.25rem}.compare-numbers{gap:8px 14px}.repeat-observation{align-items:flex-start;flex-direction:column;gap:5px}.compare-source{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}.compare-source a{min-height:44px;width:100%;font-size:.9rem}.compare-source code{font-size:.88rem}}
-"""
+""" + ROBUSTNESS_CSS
 
 
 def _fmt_percent(rate: float) -> str:
@@ -77,29 +82,35 @@ def _commit_link(revision: str) -> str:
     return html.escape(COMMIT_PREFIX + revision, quote=True)
 
 
-def render_comparison(smoke: dict, advanced: dict) -> str:
+def render_comparison(smoke: dict, advanced: dict, robustness: dict | None = None) -> str:
     """Render using only pre-validated smoke data and strictly approved advanced.
 
     The calling builder has already checked the smoke record against its fixed
     provenance allowlist. This function independently validates advanced data.
     """
     validate_evidence(advanced)
+    if robustness is not None:
+        validate_robustness_evidence(robustness)
     e = lambda value: html.escape(str(value), quote=True)
-    records = (smoke, advanced)
+    records = (smoke, advanced) if robustness is None else (smoke, advanced, robustness)
     cards = []
     table_rows = []
     for index, record in enumerate(records):
         is_advanced = index == 1
+        is_robustness = index == 2
         experiment = e(record["experiment_id"])
         summary = record["summary"]
         cases = record["cases"]
         latency_average = round(mean(case["latency_ms"] for case in cases))
         run_id = record["run_id"]
         sha = record["revision_sha"]
-        card_style = " advanced" if is_advanced else ""
-        rate_style = " advanced-percent" if is_advanced else ""
-        card_title = "Extração estruturada e classificação" if is_advanced else "Instruções simples"
-        tag = "Avançado · 3 casos" if is_advanced else "Básico · 3 casos"
+        card_style = " robustness" if is_robustness else " advanced" if is_advanced else ""
+        rate_style = " robustness-percent" if is_robustness else " advanced-percent" if is_advanced else ""
+        card_title = ("Instruções conflitantes, dados não confiáveis e JSON"
+                      if is_robustness else "Extração estruturada e classificação"
+                      if is_advanced else "Instruções simples")
+        tag = ("Robustez · 3 casos" if is_robustness else
+               "Avançado · 3 casos" if is_advanced else "Básico · 3 casos")
         cards.append(
             f'<article class="compare-card{card_style}">'
             f'<div class="compare-topline"><span class="compare-tag">{tag}</span>'
@@ -160,6 +171,25 @@ def render_comparison(smoke: dict, advanced: dict) -> str:
             f'<td>{e(detail)}</td></tr>'
         )
 
+    robustness_section = (
+        render_robustness_details(robustness)
+        if robustness is not None else ""
+    )
+    comparison_title = (
+        "Três experimentos. Três evidências."
+        if robustness is not None else "Dois experimentos. Duas evidências."
+    )
+    comparison_description = (
+        "Três amostras independentes do mesmo modelo, com tarefas diferentes."
+        if robustness is not None else
+        "Duas amostras independentes do mesmo modelo, com tarefas diferentes."
+    )
+    source_links = (
+        f'e <a href="{_run_link(robustness["run_id"])}" rel="noopener noreferrer">'
+        f'#{e(robustness["run_id"])}</a>'
+        if robustness is not None else ""
+    )
+    record_count_word = "três" if robustness is not None else "dois"
     repeat = advanced["repeated_prompt"]
     repeat_text = (
         "Iguais" if repeat["outcome"] == "same"
@@ -168,8 +198,8 @@ def render_comparison(smoke: dict, advanced: dict) -> str:
     )
     return f"""<section class="panel compare-section" id="comparacao" aria-labelledby="compare-heading">
 <div class="eyebrow">Resultados reais · Comparação descritiva</div>
-<h2 id="compare-heading">Dois experimentos. Duas evidências.</h2>
-<p class="compare-intro">Duas amostras independentes do mesmo modelo, com tarefas diferentes.
+<h2 id="compare-heading">{comparison_title}</h2>
+<p class="compare-intro">{comparison_description}
 As porcentagens mostram somente quantos critérios foram atendidos em cada execução:
 não constituem uma comparação controlada, ranking ou benchmark geral.</p>
 <div class="compare-grid">
@@ -205,9 +235,11 @@ na nota de 2/3. Nenhum texto integral da resposta é publicado aqui.</p>
 <strong>{e(repeat_text)} · 1 par observado</strong>
 <span>Concordância de duas respostas não demonstra determinismo ou correção geral.</span>
 </div>
+{robustness_section}
 <p class="compare-footer">Fontes históricas: execuções
 <a href="{_run_link(smoke["run_id"])}" rel="noopener noreferrer">#{e(smoke["run_id"])}</a>
-e <a href="{_run_link(advanced["run_id"])}" rel="noopener noreferrer">#{e(advanced["run_id"])}</a>.
-Os dois registros são revisados e estáticos. Atualizações de resultados exigem nova revisão;
+e <a href="{_run_link(advanced["run_id"])}" rel="noopener noreferrer">#{e(advanced["run_id"])}</a>
+{source_links}.
+Os {record_count_word} registros são revisados e estáticos. Atualizações de resultados exigem nova revisão;
 nenhuma chamada à IA ocorre ao abrir a página.</p>
 </section>"""
