@@ -14,7 +14,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
   - **contains**: substring matching without case folding.
   - **regex**: Python `re.search` (patterns validated and length-limited).
 - Distinguishes `pass`, `fail` and `error` and includes errors in pass-rate denominator.
-- Runs offline unit tests in GitHub Actions and a security scan using the shared [ai-engineering-skills](https://github.com/magnnwsb2/ai-engineering-skills) repository at a pinned commit.
+- Runs offline unit tests and an independent, project-local security gate in GitHub Actions. The development policy follows the separately maintained `ai-engineering-skills` repository (see ADR-0001); the private scanner is not fetched by public CI.
 
 ## Project structure
 
@@ -68,8 +68,8 @@ manually dispatch experiment
 - All hosted inference must be **manual** and remain within the Cloudflare free-plan allocation. Free-tier eligibility can change. Do not enable paid usage or auto-upgrade.
 - CI never makes a Cloudflare model request.
 - Store Cloudflare credentials exclusively in GitHub Actions **Secrets** (`CLOUDFLARE_API_TOKEN`) and the nonsecret account identifier in **Variables** (`CLOUDFLARE_ACCOUNT_ID`).
-- The shared security scanner is heuristic and does not replace review or credential rotation. Only synthetic, non-private examples belong in public source files.
+- The independent project security gate is heuristic and does not replace the canonical private skill, review or credential rotation. Only synthetic, non-private examples belong in public source files.
 
 ## Specifications and acceptance criteria
 
-See [SDD-001](docs/specs/001-llm-evaluation-lab.md) for contracts, risk controls, step sequence and acceptance criteria. Follow [AGENTS.md](AGENTS.md) and the canonical **spec-driven-development** and **pre-commit-security** skills before changes.
+See [SDD-001](docs/specs/001-llm-evaluation-lab.md) for contracts, risk controls, step sequence and acceptance criteria. Follow [AGENTS.md](AGENTS.md), [ADR-0001](docs/adr/0001-public-ci-security.md), and the canonical **spec-driven-development** and **pre-commit-security** policies before changes.
