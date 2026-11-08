@@ -33,6 +33,14 @@ jobs:
           PYTHONPATH: src
           EVALUATION_OUTPUT_DIR: evaluation-output
         run: python -m llm_eval.run_evaluation
+      - name: Validate report identity, scoring and artifact integrity
+        if: ${{ !cancelled() && (steps.evaluate.outcome == 'success' || steps.evaluate.outcome == 'failure') }}
+        env:
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+          EVALUATION_OUTPUT_DIR: evaluation-output
+          PYTHONPATH: src
+        run: python -m llm_eval.report_validation
       - name: Upload evaluation evidence (even on provider errors)
         if: always()
         uses: actions/upload-artifact@v4
