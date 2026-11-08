@@ -1,0 +1,61 @@
+name: Publish reviewed static dashboard
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'dashboard/approved/**'
+      - 'tools/build_dashboard.py'
+      - 'docs/specs/001-llm-evaluation-lab.md'
+      - '.github/workflows/pages-dashboard.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: github-pages-static-dashboard
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Build offline public-only dashboard
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout reviewed static source
+        uses: actions/checkout@v5
+        with:
+          persist-credentials: false
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test public snapshot and offline renderer
+        env:
+          PYTHONPATH: .
+        run: python -m unittest discover -s tests -p 'test_dashboard.py' -v
+      - name: Build public static site (no inference)
+        run: python tools/build_dashboard.py
+      - name: Upload Pages site artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
+
+  deploy:
+    name: Deploy reviewed dashboard to GitHub Pages
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Publish static site
+        id: deployment
+        uses: actions/deploy-pages@v4
