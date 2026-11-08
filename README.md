@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** SDD contracts, offline scoring and a guarded Cloudflare Workers AI adapter are implemented. The original manual smoke test succeeded; a manual-only graded evaluation runner and GitHub Actions artifacts are implemented, but **no real graded run has been verified yet**. GitHub Pages remains future work.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. A reviewed, sanitized, offline-built static dashboard is implemented; public Pages availability depends on successful deployment and repository settings.
 
 ## What works now
 
@@ -25,6 +25,7 @@ A specification-driven, GitHub-first lab for evaluating LLM instruction-followin
   cloudflare-smoke-test.yml  # manual, small real inference; no scoring yet
   offline-ci.yml             # push/PR tests + security scan; no inference
   manual-evaluation.yml      # manual real inference + scored artifacts
+  pages-dashboard.yml        # static Pages build/deploy; no model requests
 AGENTS.md                    # project development policy
 docs/specs/001-llm-evaluation-lab.md
 src/llm_eval/
@@ -43,6 +44,9 @@ tests/test_scoring.py
 tests/test_cloudflare_provider.py
 tests/test_run_evaluation.py
 tests/test_report_validation.py
+tests/test_dashboard.py
+dashboard/approved/smoke-001.json  # approved public-safe snapshot; no responses
+tools/build_dashboard.py        # offline static dashboard generator
 ```
 
 ## Running entirely through GitHub
@@ -68,10 +72,10 @@ manually dispatch experiment
   -> call approved free-eligible Cloudflare Workers AI model using the tested adapter
   -> grade responses
   -> upload results.json and report.md as GitHub Actions artifacts
-  -> (later) publish sanitized, public-only dashboard on GitHub Pages
+  -> publish only a separately reviewed sanitized summary on GitHub Pages
 ```
 
-**Caution:** The original smoke test verifies a nonempty response only. The new workflow is implemented but has **not yet been manually dispatched and validated against Cloudflare**. Only an actual manual run and artifact inspection can establish real scoring evidence.
+**Real-run evidence:** [Manual graded evaluation run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221), reviewed on 2026-11-08: 3 pass, 0 fail/error; measured latencies 492, 1133, 523 ms. This single small sample does not establish general LLM accuracy.
 
 To run a graded experiment: open [Manual graded LLM evaluation](https://github.com/magnnwsb2/llm-evaluation-lab/actions/workflows/manual-evaluation.yml), select **Run workflow** on `main`, and inspect the `graded-evaluation-<run_id>` artifact. The workflow is never triggered by a push or pull request; it makes up to three sequential real inference calls and uploads `results.json` plus `report.md` (7-day retention).
 
@@ -79,9 +83,19 @@ To run a graded experiment: open [Manual graded LLM evaluation](https://github.c
 
 ## Report integrity and evidence
 
-The manual workflow runs an additional **offline report-validation step** after generation (including provider-error runs) and before upload. It rejects mismatched run IDs, revisions, altered scores, malformed case records and inconsistent Markdown. The test suite uses synthetic responses only. An actual dispatched run, log inspection and result artifact are still required before claiming a real graded experiment.
+The manual workflow runs an additional **offline report-validation step** after generation (including provider-error runs) and before upload. It rejects mismatched run IDs, revisions, altered scores, malformed case records and inconsistent Markdown. The test suite uses synthetic responses only. That real-run evidence has now been inspected; subsequent automatic unit tests remain offline.
 
-The dashboard layout remains deferred under SDD-001 §12 until that real evidence exists.
+The Pages dashboard uses only a manually approved summary snapshot of that run. It never publishes prompt/response bodies, credentials or estimated usage. A new run does **not** automatically refresh the public dashboard.
+
+
+## Public dashboard — Stage 015
+
+- Reviewed source: `dashboard/approved/smoke-001.json` (run #42504084221, real metrics only, no responses).
+- Static builder: `python tools/build_dashboard.py` writes `_site/index.html` and `.nojekyll` using Python standard library; zero external requests and no credentials.
+- On an approved `main` change affecting the dashboard, `.github/workflows/pages-dashboard.yml` builds offline and attempts GitHub Pages deployment. It does **not** invoke any LLM. It can also run via `workflow_dispatch`.
+- Intended Pages URL, **only after deployment succeeds**: `https://magnnwsb2.github.io/llm-evaluation-lab/`.
+- If Pages deploy is unavailable, open **Settings → Pages → Build and deployment → Source → GitHub Actions**, then run `Publish reviewed static dashboard` again. Do not claim the website is live until deployment is confirmed.
+- The published 100% pass rate refers to **3 elementary instruction-following checks in one run**, not general model capability. No actual Neuron/token usage or monetary expense was measured.
 
 ## Cost and security
 
