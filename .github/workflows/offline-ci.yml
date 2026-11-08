@@ -33,7 +33,7 @@ jobs:
         run: python -m llm_eval validate experiments/smoke-001.json
 
   secret-scanner:
-    name: Shared pre-commit-security skill (snapshot)
+    name: Independent repository security gate
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
@@ -41,22 +41,5 @@ jobs:
         uses: actions/checkout@v4
         with:
           persist-credentials: false
-      - name: Checkout reviewed shared skills at immutable SHA
-        uses: actions/checkout@v4
-        with:
-          repository: magnnwsb2/ai-engineering-skills
-          ref: daa9a20410ae4fe1b088d6d422ecbae88eecbace
-          path: .vendor/ai-engineering-skills
-          persist-credentials: false
-      - name: Scan all tracked application files as a staged snapshot
-        shell: bash
-        run: |
-          set -euo pipefail
-          snapshot="$(mktemp -d)"
-          git archive HEAD | tar -x -C "$snapshot"
-          git -C "$snapshot" init -q
-          git -C "$snapshot" add -A
-          (
-            cd "$snapshot"
-            python3 "$GITHUB_WORKSPACE/.vendor/ai-engineering-skills/skills/pre-commit-security/scripts/scan.py" --staged
-          )
+      - name: Scan tracked files (no secrets or cross-repository access)
+        run: python3 tools/security_check.py

@@ -42,7 +42,7 @@ def grade(
     """Grade one real or test response; never transform a provider error into a pass."""
     if latency_ms is not None and (type(latency_ms) is not int or latency_ms < 0):
         raise ContractError("latency_ms: expected nonnegative integer or null")
-    if error_category is not None and error_category not in ERROR_CATEGORIES:
+    if error_category is not None and (type(error_category) is not str or error_category not in ERROR_CATEGORIES):
         raise ContractError("error_category: unsupported sanitized category")
     if error_category is not None or response is None:
         return CaseResult(
