@@ -2,7 +2,7 @@
 
 A specification-driven, GitHub-first lab for evaluating LLM instruction-following and output quality using **real hosted inference** and deterministic, auditable scoring.
 
-**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis. Stage 023 builds an offline cross-model comparison foundation; no additional model has been approved or executed.
+**Current stage:** Real graded evaluation verified on [GitHub Actions run #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221): 3/3 cases passed. The reviewed, sanitized static dashboard is published through GitHub Pages. Stage 016 advanced run #42511351245 was verified: 2/3 pass, with one strict JSON-format failure; Stage 018 compares both independently reviewed historical runs on GitHub Pages. Stage 020 robustness-001 real run #42519170795 was verified at 1/3 pass (2 objective failures, 0 provider errors). Stage 021 added conservative non-scoring failure diagnostics; Stage 022 expands the public dashboard to **three manually reviewed, response-free historical snapshots**, including the verified robustness failure analysis. Stage 023 builds an offline cross-model comparison foundation; no additional model has been approved or executed. Stage 024 adds offline descriptive statistics and strict repeatability measurement guards; no actual repeated-run campaign is claimed.
 
 ## What works now
 
@@ -119,6 +119,16 @@ The real [advanced run #42511351245](https://github.com/magnnwsb2/llm-evaluation
 Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_object`: `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable`, and `unavailable`. A response with correct content but invalid surrounding text **remains a strict failure**. This diagnostic is included in the canonical `report.md` for **future** manually dispatched evaluations, with no prompts or responses copied into the Markdown. The `results.json` schema, historical artifacts, pass rates, three-call cap, model, credentials and manual-only execution remain unchanged.
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
+
+## Stage 024 — Descriptive statistics and limited repeatability
+
+Implemented an offline, standard-library-only statistical analyzer (`src/llm_eval/statistics_analysis.py`) that validates **1–5 canonical run artifacts** of the **same approved model, case suite, configuration and GitHub revision** before analyzing anything. No model inference or new permissions are enabled.
+
+It reports actual observed HTTP latencies (count, min, max, mean, median and **sample** standard deviation, which is null with fewer than two measurements), objective pass/fail/error counts and normalized response-text agreement over eligible **pairs of existing responses**. Errors and missing timings are not silently treated as zeros or disagreements. **The same wrong answer can agree twice without being correct.** A single run is explicitly marked `not_measurable_single_run` and yields no cross-run agreement rate.
+
+Its sanitized `descriptive-repeatability-observation` JSON excludes all prompts, expected answers, raw model outputs, secrets, usage/cost estimates, confidence intervals and significance claims. A restrictive offline CLI accepts existing ignored `evaluation-artifacts/` folders and writes once into ignored `comparison-output/`. The three existing public historical run snapshots remain unchanged, and **no new real multi-run evidence is claimed**.
+
+Consult [Stage 024 measurement protocol](docs/experiments/statistics-repeatability-024.md) and [SDD-001 §5.14](docs/specs/001-llm-evaluation-lab.md). Next: **025 new objective strategies → 026 reviewed model update → 027 final consolidation**.
 
 ## Stage 023 — Offline matched-suite multi-model comparison foundation
 
