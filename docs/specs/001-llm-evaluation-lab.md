@@ -114,6 +114,18 @@ The initial adapter lives in `src/llm_eval/providers/cloudflare.py`, with no aut
 - Offline tests exercise success, prompt noncompliance, sanitized provider failure, request stopping and report serialization with fake transports; no real inference on CI.
 - Stage 012's implementation and green offline CI do not by themselves establish AC-04, AC-05 or AC-08: one **explicitly dispatched** real workflow and inspected artifact are required.
 
+### 5.3 Report-integrity gate — Stage 013
+
+Before the manual-only evaluation workflow uploads any result artifact, an **offline validator** checks the produced `results.json` and `report.md` against the versioned experiment/case contracts. This is a compatible strengthening of SDD-001 §§5.2, 6–9, not permission to design or publish the Pages dashboard before a verified real experiment.
+
+- Validator entry point: `python -m llm_eval.report_validation`; it does not import or call any real provider and receives **no Cloudflare token**. The original evaluation workflow remains `workflow_dispatch` only.
+- Reject missing/oversized/malformed JSON, duplicate keys, unexpected fields, nonfinite numbers, inconsistent UTC timestamp, invalid or mismatched commit SHA/run ID, or configuration conflicting with the validated manifest.
+- Enforce exact case order/IDs and assertion types, sanitize and strictly type status, error categories and latency, and independently **re-grade** each available response from its expected assertion. An `error` stops future inference: subsequent cases must have `error` with the same category, a null response and null latency.
+- Recompute summary counts/pass rate from case records and compare the rendered Markdown against the canonical report generator; never accept external claims of successful evaluation without internally consistent evidence.
+- A successful validation means a report is structurally internally consistent; **it does not prove** that the provider call really happened or that the data are trustworthy without inspecting the actual manual run and its logs. Never silently substitute synthetic fixture data for a real-run artifact.
+- Validate after the inference step even if it exits with a provider error, before the upload step. The artifact upload remains limited to 7-day retention and should not expose response text in logs. Unit tests run on GitHub PR/push exclusively with fabricated responses.
+- As specified in §12, no final dashboard layout or public publication decisions are made until a real graded manual-run artifact is available and inspected.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
