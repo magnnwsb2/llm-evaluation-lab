@@ -17,7 +17,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: manual-llm-evaluation
+  group: manual-workers-ai-inference
   cancel-in-progress: false
 
 jobs:

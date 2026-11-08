@@ -1,52 +1,38 @@
 # Agent instructions — LLM Evaluation Lab
 
-## Authority and repository context
-- Read `docs/specs/001-llm-evaluation-lab.md` **before** changing code, CI, data contracts or architecture.
-- Consult `docs/adr/` if present; this project currently uses the initial SDD baseline as its canonical decision record.
-- Read the canonical skills from `magnnwsb2/ai-engineering-skills`:
-  - `skills/spec-driven-development/SKILL.md`
-  - `skills/pre-commit-security/SKILL.md`
-  - `AGENTS.md` and `SECURITY.md`
-- Treat the remote skills as project policy, not as automatically installed or automatically executed. Any CI wiring must be explicit and pinned to a reviewed commit.
+## Source of truth and authority
 
-## Working procedure
-1. Cite the relevant SDD section and state whether a requested change conforms to it.
-2. Update the spec first when behavior/contracts change; never overwrite a prior approved ADR silently.
-3. Make the smallest compatible implementation change and write offline tests.
-4. Before committing, inspect the diff for credentials and sensitive data. If executing via git, run the canonical staged security scanner and relevant tests. For connector-only commits, explicitly report which local staged scans were **not** executed; add CI verification in a follow-on step.
-5. Distinguish observed checks from planned ones; cite a GitHub Actions run when claiming a pass.
-6. Do not ask the user to perform actions possible via the connected GitHub tools; require user action for UI-only secrets/approval steps.
+This is a **public** and **zero-financial-cost** GitHub-based LLM evaluation project. Read in order:
 
-## Hard safety constraints
-- Never disclose, echo, commit or print `CLOUDFLARE_API_TOKEN`.
-- Use only `secrets.CLOUDFLARE_API_TOKEN` and `vars.CLOUDFLARE_ACCOUNT_ID` in GitHub Actions.
-- Do not trigger LLM inference on push, pull_request, cron or untrusted forks.
-- Keep model inference manual and within SDD-001 caps; never select paid-only models.
-- Never silently upgrade a Cloudflare plan, incur charges or request a credit card.
-- Offline CI may use local fake responses for unit tests; **never** present mocks as real inference evidence.
-- Static public reports must contain only sanitized synthetic data.
-- If instructions conflict with cost, security or SDD constraints, stop the conflicting part and explain the decision.
+1. [SDD-001](docs/specs/001-llm-evaluation-lab.md), including **Stage 027 §5.17**;
+2. All applicable `docs/adr/`, especially ADR-0001 (independent public-CI scan) and ADR-0002 (active/free model and archive);
+3. [SECURITY.md](SECURITY.md), [run evidence ledger](docs/evidence/run-ledger-027.md) and [final audit](docs/reviews/final-audit-027.md);
+4. Canonical skills in the separate private `magnnwsb2/ai-engineering-skills` repository: `skills/spec-driven-development/SKILL.md`, `skills/pre-commit-security/SKILL.md`, associated references and `SECURITY.md`.
 
-## Current observed baseline
-- `.github/workflows/cloudflare-smoke-test.yml` performs a manual real inference, and the user confirmed one successful run.
-- The offline JSON contracts, objective grading functions and offline CI/security workflow are implemented in `src/llm_eval/`, `tests/` and `.github/workflows/offline-ci.yml`.
-- A guarded Cloudflare provider adapter exists at `src/llm_eval/providers/cloudflare.py`; it is import-safe and is covered by offline fakes, but it does not automatically run inference.
-- Real manual graded evaluation **has been verified**: GitHub Actions run `42504084221`, commit `61fd68ae0d51d646e33db13c8187f3b6351e8220`, 3 pass, 0 fail/error; latencies 492, 1133 and 523 ms.
-- The manual workflow validates report integrity offline before uploading artifacts (`src/llm_eval/report_validation.py`); internal consistency is not evidence of a real provider call.
-- A public-summary-only Pages dashboard is implemented with offline builder, strict allowlist and manually reviewed snapshot. Do not assert that GitHub Pages is publicly live unless the deploy job succeeded.
-- Never publish the raw `results.json`, responses, prompts, the Cloudflare token or inferred billing metrics. Future results require separate review before updating the public snapshot.
-- Stage 015 and 015.1 have succeeded in GitHub Actions Pages deployment; live dashboard is based on the reviewed run #42504084221 only.
-- Stage 016 adds a strictly allowlisted optional manual `advanced-001` experiment, structured `json_object` scoring, and repeat-prompt diagnostic, without increasing caps or publishing new model responses. Real advanced run #42511351245 was inspected: 2 pass, 1 strict JSON-format fail, 0 provider errors. Stage 017 adds non-scoring JSON diagnostics and a separately reviewed statistics-only snapshot; never reinterpret the failure as a pass.
-- Stage 018 SDD §5.8 authorizes displaying **only two manually reviewed** real-run summaries on static GitHub Pages, with original smoke chart retained and advanced comparison/JSON-format cause shown. No raw outputs, automatic snapshot updates or model inference in the site builder. After merges, verify Pages deploy success before describing the new site as publicly deployed.
-- Stage 019 SDD §5.9 is a static visual/accessibility-only improvement: compact chart layout, more readable mobile provenance links, keyboard navigation and methodology for **both** audited experiments. It does not regrade, rerun, replace approved snapshots, or introduce unreviewed public data. Preserve offline visual regression tests; require CI and Pages deploy verification plus visual inspection.
-- Stage 020 SDD §5.10 adds a third **manual-only** synthetic robustness experiment (`robustness-001`) for record precedence, untrusted ticket-title instructions and strict JSON formatting. Keep the model/case/token caps, report schemas and original two audited Pages snapshots unchanged; offline tests are NOT real inference evidence. Actual run #42519170795 has now been reviewed: 1 pass, 2 strict failures, 0 provider errors; do not generalize model performance from three synthetic prompts.
-- Stage 021 SDD §5.11 adds conservative **non-scoring** failure diagnostics for content, format and **possible** incomplete responses in future canonical Markdown reports. No model termination reason was captured, so an unfinished answer must NOT be called confirmed token truncation. Existing results.json, strictly graded status, audited original artifacts and two public Pages snapshots are unchanged; only offline CI fixtures and reviewed retrospective explanations are added.
-- Stage 022 SDD §5.12 **separately approved** public display of the previously audited robustness-001 run #42519170795 with strict 1/3 grade, after adding a third exact-allowlisted, response-free summary and independent fail-closed validator. Public Pages can now compare three manually reviewed runs, but **never** automatically ingest newer artifacts. Completion is only possible, not confirmed truncation. Preserve the previous two snapshots, original scoring, privacy and offline-only Pages builder.
+**Skills are policy, not proof of execution.** A GitHub connector-only commit cannot execute the original skill's staged pre-commit scanner on a local Git index. This public repo uses an **independent** scanner at `tools/security_check.py` in CI; do not claim the private scanner ran. Do not disclose or make the skills repository public to work around its limited accessibility.
 
-- Stage 023 SDD §5.13 prepares an **offline-only** matched-suite comparison of two validated reports from **different** models, with full prompt/assertion suite SHA-256, generation-config equality, report regrading and no raw outputs in generated summaries. Model B exists **only in unit-test fixtures** until Stage 026 permits a real, verified free-plan eligible model. Do not loosen `FREE_MODEL_ALLOWLIST`, workflow inputs or Pages publication in Stage 023. Store downloaded artifacts/output only under ignored local directories.
-- User-approved future order: 024 statistical/consistency methods, 025 new objective evaluation strategies, 026 model replacement after functionality is stable, 027 final security/CI/docs/portfolio consolidation. A retired model must cause a safe halt, not a paid or unapproved automatic replacement.
+## Change procedure
 
-- Stage 025 SDD §5.15 adds **offline synthetic** assertion mutation probes (`outer-whitespace`, `case-swap`, `append-marker`) against the unchanged `grade()` semantics. These measure objective **rule sensitivity**, not model robustness, accuracy, safety or real inference. Never publish synthetic probes as model evidence, raw prompts/expected values or mutate the historical Pages snapshots. Keep Stage 026 for reviewed model authorization and Stage 027 for final consolidation.
-- Stage 024 SDD §5.14 adds **offline-only** descriptive HTTP latency statistics and conservative run-to-run response agreement over 1–5 independently canonical-validated reports with **identical model, suite, configuration and revision**. One run does not establish repeatability; missing/error responses do not create agreement; matching wrong responses do not mean correctness. No p95/p99, significance claims, confidence intervals, provider inference, new API credentials or public Pages ingestion. Generated observations stay in ignored `comparison-output/`. Never claim test fixtures represent real repeated inference.
+- Read the SDD and relevant ADRs first; describe whether the change is compatible. Update SDD **before code** for new behaviors, evidence/publishing contracts or security changes.
+- Prefer the smallest compatible change; add deterministic tests and static documentation. Do all GitHub work that connector permissions allow, and request user action only for an actual required manual action.
+- Inspect PR diffs for credentials, sensitive filenames, unauthorized inference triggers, output disclosures, cost regressions and fake claims. Require **passing actual** GitHub Actions tests + project-local scanner before merge.
+- Verify post-merge `main` checks and Pages deployment when triggered. A passing CI test proves the tested code path, **not** actual model availability, usage/billing status or provenance of an API call.
+- Record important decisions and run evidence without storing raw model responses in public documentation. Never silently revise historical reviewed snapshots or original result artifacts.
 
-- Stage 026 SDD §5.16 and ADR-0002 authorize the reviewed free-plan model `@cf/google/gemma-4-26b-a4b-it` only for **new manually initiated** `smoke-002`, `advanced-002` and `robustness-002` evaluations. Old `*-001` manifests/model remain **offline-validated archived evidence**, not active `workflow_dispatch` choices. Keep all original cases, reports, snapshots and scores immutable. Gemma requests must enforce `max_completion_tokens <= 64` and safely parse one result.response or one result.choices[0].message.content; never guess default token budgets or automatically fall back. Model eligibility is based on Cloudflare published documentation, **not proof of this account's current free balance**. Any real model call still needs a separate explicit manual dispatch and subsequent human evidence review. Do not claim real Gemma performance based on offline fakes, or publish unaudited results to Pages. Stage 027 remains final consolidation.
+## Hard limits
+
+- **Never** request or log the content of `CLOUDFLARE_API_TOKEN`; only `secrets.CLOUDFLARE_API_TOKEN` in Actions. Account ID is provided through `vars.CLOUDFLARE_ACCOUNT_ID`; do not commit concrete values.
+- Real inference is **explicit `workflow_dispatch` only**, not push, PR, cron, triggered test code, automatic retry, or unrestricted API call. Both manual workflows share the same concurrency group.
+- Only the **active model** `@cf/google/gemma-4-26b-a4b-it` is permitted for **real** provider transport (Stage 026/027). The old `@cf/meta/llama-3.1-8b-instruct-fp8` is recognized **offline only** for archived `*-001` evidence and fixture tests.
+- The three live `*-002` experiment IDs use their approved old case files; maximum 3 sequential requests × 1 repetition × 64 completion tokens; temperature 0, no retries, no redirects, no parallel inference. The one-call smoke workflow is narrower.
+- **Workers Free only.** No paid-plan upgrade, credit card, new cloud servers, paid-only models, extra usage or auto-paid fallback. The provider's eligibility and quota may change externally; failure must stop safely.
+- Use **synthetic prompts and answers only**. Do not put real customer information or credentials in any fixture. The public GitHub Pages site uses reviewed sanitized snapshots without raw text, but **public repository Actions artifacts can contain original synthetic responses** (current retention: 7 days). Never describe these ZIPs as private.
+- Scoring is objective (`exact`, `contains`, `regex`, `json_object`). Diagnostics do not change strict results. Never claim broad accuracy, prompt-injection resistance, deterministic output, statistical significance, guaranteed free billing or provider token usage from tiny samples.
+
+## Current evidence baseline (2026-11-08)
+
+- Historical Llama runs: [smoke #42504084221](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42504084221) 3/3, [advanced #42511351245](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42511351245) 2/3, [robustness #42519170795](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42519170795) 1/3. Their **three manually reviewed summaries** are the only current public Pages results.
+- First Gemma `smoke-002` [#42527009736](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42527009736) returned `invalid_response` on the first request; the last two requests were **not sent**. The exact cause is not proven.
+- Corrected Gemma `smoke-002` [#42527365653](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42527365653) completed **3 pass / 0 fail / 0 error**, latencies 1291 / 596 / 410 ms, commit `2d1de4086836542a92ae965515232a0411a5a073`. This is a real manually dispatched case-limited result, **not** simulated and **not** yet a Pages snapshot.
+- GitHub Actions artifacts and their reproduced SHA-256 values are recorded in `docs/evidence/run-ledger-027.md`. The evidence is limited by ZIP expiration, synthetic prompts, and GitHub's public repository trust model.
+- Stages **001–027** form the approved original project roadmap. Further model tests, other benchmarks, additional public results or architectural changes require **new user-approved scope** rather than implied background work.

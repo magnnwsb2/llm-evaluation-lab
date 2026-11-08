@@ -221,6 +221,10 @@ def infer(
     The token is never logged, returned or included in raised exception text.
     """
     _validate_inputs(experiment, case, account_id, api_token)
+    # Archived models remain loadable solely for historical report validation
+    # and offline fixture tests. Never send them using the real HTTP transport.
+    if transport is None and experiment.model != ACTIVE_INFERENCE_MODEL:
+        raise ContractError("provider: archived model is not eligible for live inference")
     url = f"{API_ORIGIN}/client/v4/accounts/{account_id}/ai/run/{experiment.model}"
     body = {
         "messages": [{"role": "user", "content": case.prompt}],
