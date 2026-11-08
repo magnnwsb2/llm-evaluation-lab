@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "experiment_id": "advanced-001",
+  "run_id": "42511351245",
+  "revision_sha": "6f90b6a2e9cea68e9d6f4087cb2662ba562e734b",
+  "timestamp_utc": "2026-11-08T18:42:51+00:00",
+  "model": "@cf/meta/llama-3.1-8b-instruct-fp8",
+  "visibility": "reviewed-public-statistics-only",
+  "summary": {
+    "total": 3,
+    "passed": 2,
+    "failed": 1,
+    "errors": 0,
+    "pass_rate": 0.6666666666666666
+  },
+  "cases": [
+    {
+      "id": "json-ticket-001",
+      "status": "fail",
+      "assertion_type": "json_object",
+      "latency_ms": 2760,
+      "diagnostic": "content_match_format_violation"
+    },
+    {
+      "id": "decision-001",
+      "status": "pass",
+      "assertion_type": "exact",
+      "latency_ms": 670
+    },
+    {
+      "id": "decision-002",
+      "status": "pass",
+      "assertion_type": "exact",
+      "latency_ms": 717
+    }
+  ],
+  "repeated_prompt": {
+    "first_id": "decision-001",
+    "second_id": "decision-002",
+    "outcome": "same"
+  }
+}
