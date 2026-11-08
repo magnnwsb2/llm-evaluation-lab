@@ -87,6 +87,23 @@ The GitHub Actions runner is ephemeral; **no persistent local machine** or paid 
 - Error messages must exclude request headers, tokens and sensitive response content.
 - No prompt/response bodies exposed on public Pages unless test data are specifically approved as public.
 
+### 5.1 Provider adapter contract — Stage 011
+
+The initial adapter lives in `src/llm_eval/providers/cloudflare.py`, with no automatic invocation on import and no credentials in code. It is called only by an explicitly authorized manual runner in a subsequent stage.
+
+- Inputs: a previously validated `Experiment` and one of its `Case` objects, an account identifier and API token supplied at runtime by the caller.
+- Defensively check the allowlisted model, provider, maximum 3 cases, exactly 1 repetition, maximum 64 output tokens, prompt size and case membership **again before network access**. Dataclasses constructed directly are not automatically trusted.
+- Send a **single**, non-streaming JSON `POST` with `messages`, `max_tokens`, `temperature` and `stream: false`; no retries, fallback, parallelism or scheduled invocation.
+- Use an allowlisted HTTPS host and strict account-ID syntax, reject HTTP redirects (do not forward Authorization), set a 45-second request timeout and cap response bytes at 64 KiB.
+- Accept only the Cloudflare JSON envelope `{"success": true, "result": {"response": "<text>"}}` where the response is a nonempty string. Reject malformed or oversized replies. Never assume provider usage data are guaranteed.
+- Return response text with **client-observed HTTP latency in milliseconds**; this is not token generation time.
+- Raise a sanitized `ProviderError` with a category compatible with `scoring.ERROR_CATEGORIES` on failed calls; include optional measured latency but do **not** expose raw request headers, tokens, provider error bodies or arbitrary exception strings.
+- Map HTTP 401/403 to `auth`, 429 with Cloudflare error code 3036 to `quota`, other 429 to `rate_limit`, 408/504 and socket timeouts to `timeout`, transport failures to `network`, malformed successful bodies to `invalid_response` and other HTTP failures to `provider`. A paid-model restriction (Cloudflare error 5035) is `provider`, not a prompt failure.
+- All tests inject fake responses or local errors; GitHub push/PR workflows **must never** invoke real inference.
+- No claim of full AC-04, AC-05, AC-08 or AC-09 until the later manual evaluation workflow provides real evidence.
+
+**Model lifecycle:** Cloudflare's model documentation currently lists **2026-11-20** as the planned deprecation date of `@cf/meta/llama-3.1-8b-instruct-fp8`. Keep the current known-working model solely for this compatible adapter step; evaluate a free-eligible replacement and update the allowlist/spec **before** the deprecation, under a separately reviewed change. Never silently swap models.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
