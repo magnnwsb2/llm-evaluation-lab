@@ -39,6 +39,8 @@ class ScoringTests(unittest.TestCase):
         with self.assertRaises(ContractError):
             grade(self.case(), None, error_category="Bearer sensitive-token")
         with self.assertRaises(ContractError):
+            grade(self.case(), None, error_category=[])
+        with self.assertRaises(ContractError):
             grade(self.case(), "OK", latency_ms=True)
         with self.assertRaises(ContractError):
             grade(self.case(), 10)
