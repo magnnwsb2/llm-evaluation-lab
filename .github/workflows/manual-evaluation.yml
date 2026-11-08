@@ -11,6 +11,7 @@ on:
         options:
           - smoke-001
           - advanced-001
+          - robustness-001
 
 permissions:
   contents: read
