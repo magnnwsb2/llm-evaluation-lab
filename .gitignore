@@ -218,3 +218,7 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+# Locally downloaded evaluation artifacts may contain raw model outputs.
+# Never commit them or offline-generated comparison outputs.
+evaluation-artifacts/
+comparison-output/
