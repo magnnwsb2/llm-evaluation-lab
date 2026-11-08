@@ -141,25 +141,25 @@ a{{color:var(--accent);text-decoration:none}}a:hover{{text-decoration:underline}
 .eyebrow{{font-size:.8rem;letter-spacing:.16em;text-transform:uppercase;color:var(--green);font-weight:750}}
 h1{{font-size:clamp(2.15rem,6vw,4.45rem);line-height:1.12;margin:16px 0;letter-spacing:-.055em;max-width:780px}}
 .sub{{font-size:1.1rem;color:var(--muted);max-width:730px}}
-.meta{{color:var(--muted);font-size:.87rem;margin:28px 0 42px}}
+.meta{{color:var(--muted);font-size:.87rem;margin:28px 0 42px;overflow-wrap:anywhere}}
 .grid{{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px}}
-.card,.panel{{border:1px solid var(--line);background:linear-gradient(145deg,var(--surface),#101725);border-radius:18px;padding:24px}}
+.card,.panel{{min-width:0;border:1px solid var(--line);background:linear-gradient(145deg,var(--surface),#101725);border-radius:18px;padding:24px}}
 .label{{color:var(--muted);font-size:.86rem}}.value{{font-size:2.3rem;letter-spacing:-.05em;font-weight:780;margin:5px 0 0}}
 .value.good{{color:var(--green)}}.value.small{{font-size:1.8rem}}
 section{{margin-top:40px}}.panel h2{{margin:0 0 22px;font-size:1.25rem}}.twocol{{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}}
-.bar-row{{display:grid;grid-template-columns:135px 1fr 80px;gap:14px;align-items:center;margin:21px 0;font-size:.85rem}}
+.bar-row{{display:grid;grid-template-columns:minmax(100px,125px) minmax(60px,1fr) 74px;gap:12px;align-items:center;margin:21px 0;font-size:.85rem}}
 .bar-row strong{{text-align:right;font-variant-numeric:tabular-nums}}
-.track{{height:11px;border-radius:8px;background:var(--surface2);overflow:hidden}}
-.bar{{height:100%;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--purple)}}
-.stats{{display:grid;grid-template-columns:1fr 1fr;gap:16px}}
-.stat strong{{display:block;font-size:1.6rem}}.stat span{{font-size:.82rem;color:var(--muted)}}
-.table-wrap{{overflow-x:auto}}table{{border-collapse:collapse;width:100%;font-size:.91rem}}th,td{{padding:14px 10px;border-bottom:1px solid var(--line);text-align:left}}th{{color:var(--muted);font-size:.81rem;font-weight:600}}.number{{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}}.passed{{color:var(--green);font-weight:650}}
+.track{{width:100%;height:11px;border-radius:8px;background:var(--surface2);overflow:hidden}}
+.bar{{height:100%;min-width:4px;border-radius:8px;background:linear-gradient(90deg,var(--accent),var(--purple))}}
+.stats{{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}}
+.stat{{min-width:0;padding:16px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface2)}}.stat strong{{display:block;font-size:clamp(1.15rem,2.4vw,1.6rem);line-height:1.25;letter-spacing:-.03em;font-variant-numeric:tabular-nums}}.stat span{{display:block;margin-top:7px;font-size:.82rem;color:var(--muted)}}
+.table-wrap{{overflow-x:auto;border:1px solid var(--line);border-radius:12px}}table{{border-collapse:collapse;width:100%;min-width:560px;font-size:.91rem}}th,td{{padding:18px 18px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}}thead{{background:var(--surface2)}}thead th{{color:var(--muted);font-size:.79rem;font-weight:700;letter-spacing:.02em}}tbody tr:last-child td{{border-bottom:0}}tbody tr:nth-child(2n){{background:#1b2536}}.number{{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}}.passed{{display:inline-block;border:1px solid #28694c;border-radius:999px;padding:4px 9px;background:#133a2b;color:var(--green);font-weight:650}}
 .case-id{{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-size:.84rem}}
 .note{{padding:20px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 10px 10px 0;color:var(--muted);font-size:.92rem;margin-top:26px}}
 footer{{margin-top:50px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:24px}}
 code{{color:var(--fg);overflow-wrap:anywhere}}
 @media(max-width:800px){{.grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.twocol{{grid-template-columns:1fr}}}}
-@media(max-width:540px){{main{{padding:24px 16px 55px}}nav{{margin-bottom:38px}}.grid{{gap:10px}}.card,.panel{{padding:17px}}.value{{font-size:1.9rem}}.bar-row{{grid-template-columns:100px 1fr 65px;gap:8px;font-size:.73rem}}}}
+@media(max-width:540px){{main{{padding:24px 16px 55px}}nav{{margin-bottom:38px}}.grid{{gap:10px}}.card,.panel{{padding:17px}}.value{{font-size:1.9rem}}.bar-row{{grid-template-columns:88px minmax(40px,1fr) 65px;gap:8px;font-size:.73rem}}}}
 </style>
 </head>
 <body>
