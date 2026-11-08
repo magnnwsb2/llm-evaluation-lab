@@ -106,6 +106,24 @@ def validate_snapshot(doc: object) -> dict:
 def render(doc: dict, advanced: dict | None = None) -> str:
     doc = validate_snapshot(doc)
     comparison_html = render_comparison(doc, advanced) if advanced is not None else ""
+    comparison_jump = (
+        '<a class="nav-jump" href="#comparacao">Ver comparação ↓</a>'
+        if advanced is not None else ""
+    )
+    advanced_methodology = (
+        '<p><strong>advanced-001:</strong> três casos sintéticos: um teste '
+        'de extração estruturada com saída exclusivamente JSON e dois '
+        'prompts idênticos de classificação com regra objetiva. '
+        'Aprovou 2/3: o conteúdo extraído estava correto, mas o formato '
+        'violou o contrato estrito de JSON. O par repetido concordou '
+        'nesta execução, sem provar determinismo ou correção geral.</p>'
+        '<p>Os experimentos usam tarefas diferentes e amostras pequenas: '
+        'esta comparação é descritiva, não é um teste A/B controlado, '
+        'não representa precisão geral do modelo nem permite concluir '
+        'superioridade. Os tempos incluem a requisição e resposta HTTP, '
+        'não apenas geração de tokens.</p>'
+        if advanced is not None else ""
+    )
     e = html.escape
     cases = doc["cases"]
     summary = doc["summary"]
@@ -154,7 +172,7 @@ h1{{font-size:clamp(2.15rem,6vw,4.45rem);line-height:1.12;margin:16px 0;letter-s
 .card,.panel{{min-width:0;border:1px solid var(--line);background:linear-gradient(145deg,var(--surface),#101725);border-radius:18px;padding:24px}}
 .label{{color:var(--muted);font-size:.86rem}}.value{{font-size:2.3rem;letter-spacing:-.05em;font-weight:780;margin:5px 0 0}}
 .value.good{{color:var(--green)}}.value.small{{font-size:1.8rem}}
-section{{margin-top:40px}}.panel h2{{margin:0 0 22px;font-size:1.25rem}}.twocol{{display:grid;grid-template-columns:1.2fr .8fr;gap:18px}}
+section{{margin-top:40px}}.panel h2{{margin:0 0 22px;font-size:1.25rem}}.twocol{{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;align-items:start}}.latency-chart{{align-self:start}}.smoke-stats{{align-self:start}}
 .bar-row{{display:grid;grid-template-columns:minmax(100px,125px) minmax(60px,1fr) 74px;gap:12px;align-items:center;margin:21px 0;font-size:.85rem}}
 .bar-row strong{{text-align:right;font-variant-numeric:tabular-nums}}
 .track{{width:100%;height:11px;border-radius:8px;background:var(--surface2);overflow:hidden}}
@@ -166,14 +184,27 @@ section{{margin-top:40px}}.panel h2{{margin:0 0 22px;font-size:1.25rem}}.twocol{
 .note{{padding:20px;border-left:3px solid var(--accent);background:var(--surface);border-radius:0 10px 10px 0;color:var(--muted);font-size:.92rem;margin-top:26px}}
 footer{{margin-top:50px;color:var(--muted);font-size:.85rem;border-top:1px solid var(--line);padding-top:24px}}
 code{{color:var(--fg);overflow-wrap:anywhere}}
+/* Stage 019 keyboard and touch accessibility */
+.skip-link{{position:absolute;left:16px;top:-120px;z-index:10;padding:12px 16px;background:var(--accent);color:#0a0e18;font-weight:750;border-radius:8px}}
+.skip-link:focus{{top:12px}}
+.nav-actions{{display:flex;align-items:center;gap:12px;flex-wrap:wrap}}
+.nav-jump,.navlink{{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:6px 10px;border:1px solid transparent;border-radius:9px}}
+.nav-jump{{border-color:var(--line);background:var(--surface);font-weight:700}}
+.nav-jump:hover,.navlink:hover{{background:var(--surface2)}}
+a:focus-visible{{outline:3px solid var(--accent);outline-offset:3px;border-radius:4px}}
+.table-wrap:focus-visible{{outline:3px solid var(--accent);outline-offset:3px}}
+.bar-row{{min-width:0}}.bar-row>span{{overflow-wrap:anywhere}}
+#metodologia p{{max-width:920px;margin:12px 0;color:var(--muted);line-height:1.7}}
+#metodologia p strong{{color:var(--fg)}}
 @media(max-width:800px){{.grid{{grid-template-columns:repeat(2,minmax(0,1fr))}}.twocol{{grid-template-columns:1fr}}}}
-@media(max-width:540px){{main{{padding:24px 16px 55px}}nav{{margin-bottom:38px}}.grid{{gap:10px}}.card,.panel{{padding:17px}}.value{{font-size:1.9rem}}.bar-row{{grid-template-columns:88px minmax(40px,1fr) 65px;gap:8px;font-size:.73rem}}}}
+@media(max-width:540px){{main{{padding:24px 16px 55px}}nav{{margin-bottom:38px}}.nav-actions{{width:100%;gap:8px}}.nav-actions a{{flex:1 1 130px;text-align:center}}.grid{{gap:10px}}.card,.panel{{padding:17px}}.value{{font-size:1.9rem}}.bar-row{{grid-template-columns:88px minmax(40px,1fr) 65px;gap:8px;font-size:.73rem}}}}
 {COMPARISON_CSS}
 </style>
 </head>
 <body>
-<main>
-<nav><div class="logo"><span>◇</span> LLM EVALUATION LAB</div><a class="navlink" href="{e(RUN_URL)}" rel="noopener noreferrer">Ver execução no GitHub ↗</a></nav>
+<a class="skip-link" href="#conteudo">Pular para o conteúdo</a>
+<main id="conteudo">
+<nav aria-label="Navegação do laboratório"><div class="logo"><span>◇</span> LLM EVALUATION LAB</div><div class="nav-actions">{comparison_jump}<a class="navlink" href="{e(RUN_URL)}" rel="noopener noreferrer">Ver execução no GitHub ↗</a></div></nav>
 <header>
 <div class="eyebrow">Experimento real · Evidência verificada</div>
 <h1>Qualidade medida.<br>Resultados rastreáveis.</h1>
@@ -186,9 +217,9 @@ code{{color:var(--fg);overflow-wrap:anywhere}}
 <div class="card"><div class="label">Falhas de critério</div><div class="value">{summary['failed']}</div></div>
 <div class="card"><div class="label">Erros de execução</div><div class="value">{summary['errors']}</div></div>
 </div>
-<section class="twocol">
-<div class="panel"><h2>Latência por teste</h2>{bars}</div>
-<div class="panel"><h2>Tempos observados</h2>
+<section class="twocol" aria-label="Indicadores do experimento básico">
+<div class="panel latency-chart"><h2>Latência por teste</h2>{bars}</div>
+<div class="panel smoke-stats"><h2>Tempos observados</h2>
 <div class="stats"><div class="stat"><strong>{average} ms</strong><span>Média</span></div>
 <div class="stat"><strong>{fastest} ms</strong><span>Mínimo</span></div>
 <div class="stat"><strong>{slowest} ms</strong><span>Máximo</span></div>
@@ -200,9 +231,10 @@ code{{color:var(--fg);overflow-wrap:anywhere}}
 <table><thead><tr><th>Caso</th><th>Critério</th><th>Status</th><th class="number">Latência</th></tr></thead>
 <tbody>{rows}</tbody></table></div></section>
 {comparison_html}
-<section class="panel"><h2>Metodologia e limites</h2>
-<p>Três casos sintéticos de instruções simples, avaliados com as regras determinísticas <strong>exact</strong>, <strong>contains</strong> e <strong>regex</strong>. Uma repetição por caso; temperatura zero. Aprovação significa atendimento à regra específica, não validação ampla de segurança, precisão ou raciocínio.</p>
-<p>Essa amostra <strong>não</strong> representa um benchmark geral nem garante resultados futuros. Consumo de tokens, Neurons e custo financeiro não foram medidos. Nenhuma resposta completa ou prompt é publicado neste painel.</p>
+<section class="panel" id="metodologia"><h2>Metodologia e limites</h2>
+<p><strong>smoke-001:</strong> três casos sintéticos de instruções simples, avaliados por regras determinísticas <strong>exact</strong>, <strong>contains</strong> e <strong>regex</strong>. Os três passaram na execução auditada. Temperatura zero não garante repetibilidade; aprovação significa apenas atendimento à regra específica.</p>
+{advanced_methodology}
+<p>Os resultados não representam um benchmark geral nem garantem desempenho futuro. Consumo de tokens, Neurons e custo financeiro não foram medidos. Nenhuma resposta completa ou prompt é publicado neste painel.</p>
 <p>Fonte primária: <a href="{e(RUN_URL)}" rel="noopener noreferrer">GitHub Actions · execução {e(doc['run_id'])}</a> · Commit <code>{e(doc['revision_sha'])}</code>.</p>
 </section>
 <footer>LLM Evaluation Lab · Snapshot público revisado, estático e imutável até nova revisão · Sem chamadas à IA ao abrir esta página.</footer>

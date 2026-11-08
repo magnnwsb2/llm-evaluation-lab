@@ -22,7 +22,9 @@ COMMIT_PREFIX = "https://github.com/magnnwsb2/llm-evaluation-lab/commit/"
 # Deliberately plain CSS. It is embedded in an existing no-script static page.
 COMPARISON_CSS = """
 /* Stage 018: independently reviewed historical-run comparison */
-.compare-intro{max-width:760px;color:var(--muted);font-size:.97rem;margin:12px 0 26px}
+.compare-section>h2{font-size:clamp(1.6rem,3.6vw,2.15rem);line-height:1.17;letter-spacing:-.025em;margin:8px 0 20px}
+.compare-section>.eyebrow{font-size:.82rem}
+.compare-intro{max-width:760px;color:var(--muted);font-size:.99rem;margin:12px 0 26px}
 .compare-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 .compare-card{border:1px solid var(--line);background:linear-gradient(155deg,var(--surface),#111c2d);border-radius:18px;padding:22px;min-width:0}
 .compare-card.advanced{border-color:#735e3b}
@@ -33,9 +35,9 @@ COMPARISON_CSS = """
 .compare-percent.advanced-percent{color:#ffcd91}
 .compare-numbers{display:flex;gap:14px;flex-wrap:wrap;margin:12px 0 15px;color:var(--muted);font-size:.84rem}
 .compare-numbers strong{color:var(--fg);font-variant-numeric:tabular-nums}
-.compare-source{display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:.83rem}
-.compare-source code{font-size:.77rem}
-.compare-source a{text-decoration:underline;text-underline-offset:3px}
+.compare-source{display:flex;gap:8px 12px;flex-wrap:wrap;align-items:center;font-size:.9rem}
+.compare-source code{font-size:.9rem;letter-spacing:.01em}
+.compare-source a{display:inline-flex;align-items:center;min-height:44px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;text-decoration:underline;text-underline-offset:3px;overflow-wrap:anywhere}
 .compare-source a:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .compare-notice{border-left:3px solid var(--accent);border-radius:0 10px 10px 0;background:var(--surface2);padding:14px 16px;color:var(--muted);font-size:.88rem;margin:21px 0 0}
 .compare-table{margin-top:21px}
@@ -53,7 +55,7 @@ COMPARISON_CSS = """
 .repeat-observation span{color:var(--muted);font-size:.88rem}
 .compare-footer{color:var(--muted);font-size:.86rem;line-height:1.7;margin:18px 0 0}
 @media(max-width:800px){.compare-grid{grid-template-columns:1fr}}
-@media(max-width:540px){.compare-card{padding:18px}.compare-percent{font-size:2.25rem}.compare-numbers{gap:8px 14px}.repeat-observation{align-items:flex-start;flex-direction:column;gap:5px}.compare-source{align-items:flex-start}}
+@media(max-width:540px){.compare-section>h2{font-size:1.6rem}.compare-card{padding:18px}.compare-percent{font-size:2.25rem}.compare-numbers{gap:8px 14px}.repeat-observation{align-items:flex-start;flex-direction:column;gap:5px}.compare-source{display:grid;grid-template-columns:minmax(0,1fr);align-items:stretch}.compare-source a{min-height:44px;width:100%;font-size:.9rem}.compare-source code{font-size:.88rem}}
 """
 
 

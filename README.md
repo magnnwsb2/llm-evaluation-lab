@@ -53,6 +53,7 @@ dashboard/approved/smoke-001.json  # approved public-safe snapshot; no responses
 tools/build_dashboard.py        # offline static dashboard builder
 tools/comparison.py             # two reviewed-run comparisons only
 tests/test_comparison_dashboard.py
+tests/test_stage019_visual_accessibility.py
 
 ```
 
@@ -114,6 +115,18 @@ The real [advanced run #42511351245](https://github.com/magnnwsb2/llm-evaluation
 Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_object`: `strict_pass`, `content_match_format_violation`, `content_mismatch`, `unparseable`, and `unavailable`. A response with correct content but invalid surrounding text **remains a strict failure**. This diagnostic is included in the canonical `report.md` for **future** manually dispatched evaluations, with no prompts or responses copied into the Markdown. The `results.json` schema, historical artifacts, pass rates, three-call cap, model, credentials and manual-only execution remain unchanged.
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
+
+## Stage 019 — Responsive presentation and accessibility
+
+Following screenshot review of the public Stage 018 comparison, the static dashboard receives a **presentation-only** refinement, governed by SDD-001 §5.9:
+
+- Prevent the small smoke-test latency chart from vertically stretching to match its taller statistics panel.
+- Make source/commit links easier to read and tap, especially below 540 px; add keyboard-visible focus outlines, a skip-to-content link and a direct in-page comparison jump.
+- Highlight the comparison heading and keep horizontally scrollable accessible tables on narrow screens.
+- Update **Metodologia e limites** to describe the basic `smoke-001` and advanced `advanced-001` samples separately. The advanced 2/3 result includes one **strict** JSON-format failure even though its extracted field values matched; one pair of repeated decisions agreed. Different prompts prevent a controlled cross-experiment comparison. Latency is HTTP round-trip, not token-generation time.
+- Add `tests/test_stage019_visual_accessibility.py` and require its offline checks in the Pages build before deployment. Markup/style tests cannot guarantee appearance on every browser, so the published result should still be visually inspected.
+
+The approved snapshots, API contracts, model allowance and 3-call free-tier guardrails are **unchanged**. No new LLM requests, JavaScript, external assets, response bodies or billing data are used in the public site.
 
 ## Stage 018 — Reviewed static comparison on GitHub Pages
 

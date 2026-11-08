@@ -194,6 +194,20 @@ The two source executions have been independently verified and their sanitized, 
 
 **Acceptance:** PR security scan and all offline unit tests green; both approved snapshots validated before rendering; both provenance links and audited values visible; exact JSON-format failure explanation with **1 strict failure**, and `same` for the observed repeated prompt pair; no raw outputs or prompts exposed; responsive CSS and historical existing dashboard regressions green; successful Pages build/deploy.
 
+### 5.9 Visual and accessibility refinement — Stage 019
+
+A user-supplied screenshot of the published Stage 018 dashboard shows correct original and comparative real-run metrics. Four nonfunctional refinements are requested: too much blank space inside the smoke latency panel (CSS grid stretching to match the taller statistics panel); small commit/run links on mobile; understated comparative section heading; and a final methodology section describing only the smoke sample. Treat these as presentation/accessibility defects, not model or data defects.
+
+**Compatibility and implementation:**
+- Preserve audited public-only snapshots, historical links, all scores and the original comparison content; no new inference, prompts, responses, secrets, billing data or remote assets. Use existing offline, deterministic Python/HTML/CSS generator and current GitHub Pages workflow; no client JavaScript, new packages or network access.
+- Make the smoke chart panel intrinsically sized, rather than stretched by its sibling, while preserving all three bars and numeric values. Keep chart-to-statistic layout legible at narrow viewports and avoid creating horizontal page overflow.
+- Increase comparative heading hierarchy, mobile source-link tap targets and readable code/commit text; maintain sufficiently descriptive visible labels, keyboard focus indicators and horizontal scroll accessibility for wide tables. Introduce a keyboard-only skip-to-main-content link, with a working main landmark anchor, and a quick internal link to the comparison section. Make the page responsive under reduced-motion and 320–540 px viewport constraints.
+- Expand “Metodologia e limites” to **explicitly** describe `smoke-001` (3 elementary synthetic tasks) and `advanced-001` (JSON extraction plus two identical classification prompts), preserving strict JSON format failure **2/3** and observed pair agreement as distinct from correctness. Explain that they are separate small samples, not a matched A/B benchmark, no general LLM accuracy estimate, and no token/Neuron/financial measurements. Do not misstate response-generation time as the measured client HTTP latency.
+- Add independent offline layout/a11y regression tests confirming CSS grouping, intrinsic chart alignment, visible case metrics, responsive link hit-area styles, in-page links, descriptive section structure, table scrolling, zero raw payloads; continue existing CI checks and independently approved evidence gate. Tests may assert markup/CSS structure, but **cannot guarantee actual mobile browser rendering**.
+- Review the PR diff for accidental secrets and run existing project-local CI scanner; the private canonical staged scanner remains unavailable via GitHub connector per ADR-0001. Merge only after credential-free CI succeeds; verify Pages deployment and request a final screenshot to confirm actual viewport appearance.
+
+**Acceptance:** SDD-first change, offline security gate green, all prior plus new unit tests green, original audited values intact, two public records validated before publishing, Pages build/deploy green, visual screenshot pending human verification.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
