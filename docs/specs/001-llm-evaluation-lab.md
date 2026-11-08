@@ -324,6 +324,14 @@ Stage 025 extends **evaluation methodology**, not the live inference provider, s
 
 **Stage 026 acceptance:** versioned manifests and docs, real-run workflows restricted to new model, bounded dual response-format adapter, regression and negative tests passing offline, independent project-local security scan 0 blockers, merged PR and green main CI, unchanged reviewed Pages deployed; **actual model output/accuracy cannot be claimed** without a new explicitly dispatched and inspected real run.
 
+### 5.16.1 Stage 026 corrective follow-up — real smoke failure (2026-11-08)
+
+Actual manually dispatched `smoke-002` run [#42527009736](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42527009736) produced a canonical artifact `graded-evaluation-42527009736` with 0 pass / 0 fail / 3 errors. The first case `greeting-001` had `invalid_response` after **9,536 ms**; remaining two cases were **not sent** and are marked `invalid_response` with null latency by the fail-closed runner. This does **not** establish that three real API calls failed or that Gemma scored 0/3. The raw provider response was deliberately not retained, so the exact failure cause is **unknown**.
+
+Cloudflare's [official Gemma 4 getting-started guide](https://developers.cloudflare.com/workers-ai/get-started/workers-wrangler/) uses `chat_template_kwargs: {enable_thinking: false}` for ordinary short text responses and shows a `choices[0].message.content` envelope. Hypothesis: reasoning-mode output can exhaust the intentionally small 64-token completion budget, leaving empty/non-text final content. This is **not proven** by the existing artifact.
+
+**Corrective action:** For **Gemma only**, send `chat_template_kwargs: {enable_thinking: false}` with the existing `max_completion_tokens=64`; do not raise the cap, change case prompts, enable retries, infer automatically, publish failed results as scores or alter historic evidence. Add fake-transport regression tests that assert the flag is sent, no alternative paid models are used, and an empty answer still fails closed. No new credentials or workflows. Do not perform another real inference without a fresh explicit user-initiated manual dispatch. This is a hypothesis-driven compatibility fix, not a confirmed provider diagnosis.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.

@@ -129,8 +129,40 @@ class GemmaModelMigrationTests(unittest.TestCase):
         self.assertEqual(payload["max_completion_tokens"], 64)
         self.assertNotIn("max_tokens", payload)
         self.assertEqual(payload["temperature"], 0)
+        self.assertEqual(payload["chat_template_kwargs"], {"enable_thinking": False})
         self.assertIs(payload["stream"], False)
         self.assertEqual(grade(exp.cases[0], result.text).status, "pass")
+
+    def test_legacy_archived_adapter_does_not_inject_gemma_only_thinking_flag(self):
+        exp = load_experiment("experiments/smoke-001.json", ROOT)
+        seen = []
+        result = infer(
+            exp, exp.cases[0], account_id="a"*32,
+            api_token="synthetic",
+            transport=lambda url, token, body: (
+                seen.append(body) or {"success": True, "result": {"response": "OK"}}
+            ),
+        )
+        self.assertEqual(result.text, "OK")
+        self.assertEqual(len(seen), 1)
+        self.assertNotIn("chat_template_kwargs", seen[0])
+        self.assertEqual(seen[0]["max_tokens"], 64)
+
+    def test_empty_gemma_answer_still_fails_closed_without_retry(self):
+        exp = load_experiment("experiments/smoke-002.json", ROOT)
+        requests = []
+        def fake(url, token, body):
+            requests.append(body)
+            return {"success": True, "result": {
+                "choices": [{"message": {"role": "assistant", "content": ""}}]
+            }}
+        with self.assertRaises(ProviderError) as failure:
+            infer(exp, exp.cases[0], account_id="a"*32,
+                  api_token="synthetic", transport=fake)
+        self.assertEqual(failure.exception.category, "invalid_response")
+        self.assertEqual(len(requests), 1)
+        self.assertEqual(requests[0]["max_completion_tokens"], 64)
+        self.assertEqual(requests[0]["chat_template_kwargs"], {"enable_thinking": False})
 
     def test_validated_new_envelopes_legacy_response_and_chat_choice(self):
         exp = load_experiment("experiments/smoke-002.json", ROOT)

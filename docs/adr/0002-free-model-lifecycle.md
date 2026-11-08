@@ -25,3 +25,7 @@ Cloudflare documents `@cf/google/gemma-4-26b-a4b-it` as a newer hosted model wit
 - On a request failure for capacity, authentication, quota, payment restriction or HTTP 410, fail closed. **Do not** upgrade an account, use AI Gateway credits or silently switch models.
 - A versioned cross-model comparison is only meaningful after both actual runs are independently verified; small synthetic suites do not establish statistically significant superiority.
 - The historical model remains readable by offline tooling; its presence in the validator allowlist is **not authorization for new inference**.
+
+## First real-run failure and compatibility follow-up (2026-11-08)
+
+Manual `smoke-002` run [#42527009736](https://github.com/magnnwsb2/llm-evaluation-lab/actions/runs/42527009736) produced one attempted HTTP inference (9,536 ms; `invalid_response`) followed by two intentionally skipped cases (null latencies), not three failed provider requests. The raw response was not saved, so **the exact cause is unknown**. Cloudflare's Gemma 4 guide documents `chat_template_kwargs.enable_thinking=false` for plain text generation. Disable this optional reasoning mode only for Gemma, preserving `max_completion_tokens=64`, fail-closed response handling, and one-request-only execution. This is a **testable hypothesis**, not evidence that the model is now working. Another manually authorized run is required; no automated retry.
