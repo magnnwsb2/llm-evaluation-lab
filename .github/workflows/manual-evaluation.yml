@@ -1,0 +1,45 @@
+name: Manual graded LLM evaluation
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: manual-llm-evaluation
+  cancel-in-progress: false
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout reviewed experiment
+        uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Run bounded real inference and grade responses
+        id: evaluate
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          GITHUB_SHA: ${{ github.sha }}
+          PYTHONPATH: src
+          EVALUATION_OUTPUT_DIR: evaluation-output
+        run: python -m llm_eval.run_evaluation
+      - name: Upload evaluation evidence (even on provider errors)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: graded-evaluation-${{ github.run_id }}
+          path: |
+            evaluation-output/results.json
+            evaluation-output/report.md
+          retention-days: 7
+          if-no-files-found: error
