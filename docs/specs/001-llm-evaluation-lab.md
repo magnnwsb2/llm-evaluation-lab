@@ -146,6 +146,26 @@ The first deployed GitHub Pages dashboard displayed correct numerical results bu
 - Remain compatible with §5.4: static Python standard-library generation; no external assets, scripts, new providers, inference, automatic snapshot updates, credentials or billing claims.
 - Require the existing no-inference PR test/security checks and successful Pages build/deploy before declaring the visual fix published. Automated structural tests do **not** replace actual cross-device browser inspection.
 
+### 5.6 Advanced objective evaluation — Stage 016
+
+After verification of the public dashboard and Stage 015.1 rendering corrections, introduce a **second, explicitly selected** three-case experiment that exercises structured extraction, strict formatting and repeated-prompt agreement. The original smoke experiment, results schema `1.0`, public dashboard snapshot and all historical run evidence remain unchanged.
+
+**Compatible contract addition (`schema_version: "1.0"`):**
+- The assertion vocabulary gains `json_object`. As with existing assertions, `assertion.expected` remains a **string**: a serialized, flat JSON object with 1–8 unique, simple alphanumeric/underscore field names and values of type string, integer, boolean or null. Arrays, nested objects, floating-point/non-finite values, empty object, duplicate keys and unbounded objects are invalid. Validate expected values offline before calling a model.
+- The model response must consist **only of a JSON object** (allow leading/trailing whitespace, but no Markdown fences or explanations). Parse with duplicate-key and non-finite rejection; require exactly the expected field set and type-strict value equality (`true` differs from `1`, extra fields fail). A malformed response is an objective `fail`, **not** an API transport error. Do not log raw response or exception text.
+- The existing `exact`, `contains`, `regex` semantics and case/result dataclasses stay stable; all previously valid files, the old manual workflow default, the original dashboard and report validator continue to work. Do not silently introduce schema `2.0` or change existing evaluations.
+
+**Second manual experiment:**
+- Add `experiments/advanced-001.json` and `cases/advanced.json` with exactly three public synthetic cases: one extraction to strict JSON, then two **identical** rule-based classification prompts evaluated with `exact`. The repeated prompt is deliberately sent as two individual sequential cases, **not** an increase in the `repetitions` cap.
+- `workflow_dispatch.inputs.experiment` must be a GitHub Actions **choice** with explicit allowed values `smoke-001` (default) and `advanced-001`. Runtime validation must independently reject any unknown selection **before credentials or network are used**, not accept arbitrary manifest paths, models, user prompts, output directories or case counts. Both the manual runner and the offline report-integrity gate use the same allowlisted selection. This is not an API for arbitrary remote inference.
+- At most **3** sequential calls, **1** per declared case, **64** output tokens per call, **0** retries or parallelism, unchanged free-model allowlist, manual-only invocation and stop-on-first-provider-error. PR/push CI, dashboard builds and unit tests make **zero** real AI requests.
+- In the human-readable `report.md`, compute a separate reproducibility observation for identical prompts: `same`, `different` or `unavailable` (if one or both calls received a provider error), comparing strings after trimming outer whitespace. Include number of observed pairs and a note that agreement is **not** correctness, statistical reproducibility, or guaranteed determinism. This is a small diagnostic, not a new benchmark. The JSON results contract remains unchanged and records each response and score as before; no responses are added to Markdown, Actions logs or public Pages.
+- Independently validate any advanced report with the existing report-integrity gate and new negative offline tests (forged status, malformed JSON, duplicate keys, type confusion, case order, provider-error stop, manifest selection). Do not treat tested fakes as real model evidence. No new run is declared successful until an actual authorized `workflow_dispatch` is executed and the artifact inspected.
+- Avoid publishing the new evaluation on GitHub Pages until its real run is inspected and a **separate reviewed, public-safe summary snapshot** is approved. The current Pages dashboard continues to show only the verified smoke run.
+- Model `@cf/meta/llama-3.1-8b-instruct-fp8` is documented as scheduled for retirement on 2026-11-20. This stage does not silently change the model. Before a future manual run beyond its availability, review a **free-plan eligible** replacement under a separate SDD change. Do not use paid-only models or request billing setup.
+
+**Stage 016 acceptance:** green credential-free CI with old and new manifest validation; deterministic tests for strict JSON extraction and same/different/unavailable repeat diagnostics; selector injection rejected offline; report-integrity regrading and cost ceilings preserved. Real inference and a public advanced-performance claim are separate evidence steps.
+
 ## 6. Versioned data contracts (proposed v1)
 
 All JSON documents use UTF-8. Unknown required fields fail validation; optional fields must use the documented types. Never silently coerce types.
@@ -191,7 +211,7 @@ All JSON documents use UTF-8. Unknown required fields fail validation; optional 
 ```
 
 - Case IDs are unique within a file; prompts must be public, synthetic and nonempty.
-- `assertion.type`: `exact`, `contains` or `regex`; `expected` is a nonempty string.
+- `assertion.type`: `exact`, `contains`, `regex` or additive `json_object`; `expected` is a nonempty string (a serialized strict JSON object for `json_object`).
 - `exact` compares after trimming leading/trailing whitespace; `contains` and `regex` use case-sensitive matching.
 - Regular expressions use Python `re.search`; cap pattern length and reject invalid patterns before invoking a model.
 - Prompt length cap: 1,000 Unicode characters; case count cap: 3 in MVP.
