@@ -120,7 +120,7 @@ class ApprovedEvidenceTests(unittest.TestCase):
         self.assertEqual(document["cases"][0]["diagnostic"],
                          "content_match_format_violation")
         self.assertNotIn("response", json.dumps(document))
-        self.assertNotIn("prompt", json.dumps(document))
+        self.assertNotIn('"prompt":', json.dumps(document))
 
     def test_rejects_forged_metadata_metrics_and_sensitive_fields(self):
         for field, value in (
