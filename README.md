@@ -120,6 +120,14 @@ Stage 017 introduces a **separate, offline, non-scoring diagnostic** for `json_o
 
 The manually audited historical summary is recorded at `dashboard/approved/advanced-001.json` and verified by `tools/validate_advanced_evidence.py` in offline CI. It contains only the reviewed run's provenance, counts, latencies, case outcomes and diagnostic labels — **no raw model output, prompts, secrets, estimated billing or token counts**. It is not automatically updated. Its subsequent statistics-only display in the public Pages dashboard was explicitly reviewed under **SDD-001 §5.8 (Stage 018)**; the original smoke snapshot remains unchanged.
 
+## Stage 025 — Offline objective-assertion sensitivity probes
+
+The new `src/llm_eval/mutation_probes.py` module evaluates **synthetic reference-output variants** against the four existing deterministic grading rules. For every case, it checks outer whitespace, ASCII case inversion and a fixed trailing marker. Results show which mutations each **rule** accepts or rejects; they are **not** real model outputs, accuracy measurements, exploit claims or LLM robustness scores. The regex baseline is explicitly marked as not guaranteed to match, because an expected regex is a pattern rather than an example response.
+
+Its CLI accepts only approved manifests, writes a versioned **sanitized** report under ignored `comparison-output/`, and makes **no** provider requests. It does not alter historic run grades, the model allowlist, the manual evaluation cap or the public dashboard. See [Stage 025 methodology](docs/experiments/objective-mutation-probes-025.md) and [SDD-001 §5.15](docs/specs/001-llm-evaluation-lab.md).
+
+**Remaining:** 026 reviewed model update; 027 final consolidation.
+
 ## Stage 024 — Descriptive statistics and limited repeatability
 
 Implemented an offline, standard-library-only statistical analyzer (`src/llm_eval/statistics_analysis.py`) that validates **1–5 canonical run artifacts** of the **same approved model, case suite, configuration and GitHub revision** before analyzing anything. No model inference or new permissions are enabled.
