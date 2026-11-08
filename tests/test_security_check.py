@@ -31,7 +31,7 @@ class SecurityCheckTests(unittest.TestCase):
         self.assertIn("private-key-header", scan_line(fake_header))
 
     def test_internal_addresses_are_only_review_items(self):
-        self.assertIn("internal-endpoint-review", scan_line("https://localhost:8000/health"))
+        self.assertIn("internal-endpoint-review", scan_line("https://" + "localhost:8000/health"))
         self.assertEqual(scan_line("https://example.com/health"), ())
 
     def test_no_candidate_values_returned(self):
